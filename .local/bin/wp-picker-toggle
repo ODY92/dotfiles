@@ -1,0 +1,7 @@
+#!/usr/bin/env fish
+set d ~/.config/qs-wallpaperpicker-github
+qs -p $d ipc call wallpaper toggle; or begin
+    qs -p $d -d
+    sleep 2
+    qs -p $d ipc call wallpaper toggle
+end

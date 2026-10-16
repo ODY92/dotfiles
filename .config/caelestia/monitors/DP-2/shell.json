@@ -1,0 +1,12 @@
+{
+    "bar": {
+        "workspaces": {
+            "activeIndicator": true,
+            "showWindows": false,
+            "showWindowsOnSpecialWorkspaces": true
+        }
+    },
+    "launcher": {
+        "commandPrefix": "="
+    }
+}

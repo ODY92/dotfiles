@@ -1,0 +1,134 @@
+{
+    "appearance": {
+        "transparency": {
+            "base": 0.2,
+            "enabled": true,
+            "layers": 0.3
+        }
+    },
+    "bar": {
+        "activeWindow": {
+            "compact": false
+        },
+        "clock": {
+            "background": true,
+            "showDate": false,
+            "showIcon": false
+        },
+        "persistent": true,
+        "scrollActions": {
+            "brightness": false,
+            "volume": false,
+            "workspaces": false
+        },
+        "statusIcons": [
+            {
+                "enabled": true,
+                "id": "lockStatus"
+            },
+            {
+                "enabled": false,
+                "id": "audio"
+            },
+            {
+                "enabled": false,
+                "id": "microphone"
+            },
+            {
+                "enabled": false,
+                "id": "kbLayout"
+            },
+            {
+                "enabled": true,
+                "id": "network"
+            },
+            {
+                "enabled": true,
+                "id": "bluetooth"
+            },
+            {
+                "enabled": false,
+                "id": "battery"
+            }
+        ],
+        "workspaces": {
+            "activeIndicator": true,
+            "perMonitor": true,
+            "showWindows": false,
+            "showWindowsOnSpecialWorkspaces": true
+        }
+    },
+    "launcher": {
+        "actionPrefix": "=",
+        "hiddenApps": [
+            "astralrinth-app",
+            "autosober",
+            "wine-Programs-Autodesk-adskidmgr-opener",
+            "cachyos-hello",
+            "cachyos-pi",
+            "org.cachyos.KernelManager",
+            "wine-Programs-Autodesk-Swap Autodesk Fusion Installation",
+            "bssh",
+            "bvnc",
+            "avahi-discover",
+            "footclient",
+            "foot-server",
+            "org.freecad.FreeCAD",
+            "org.cachyos.scx-manager",
+            "net.brinkervii.grapejuice",
+            "lstopo",
+            "openoffice4-base",
+            "openoffice4-calc",
+            "openoffice4-draw",
+            "openoffice4-math",
+            "openoffice4-impress",
+            "openoffice4-writer",
+            "openscad",
+            "protontricks",
+            "assistant",
+            "qdbusviewer",
+            "linguist",
+            "qv4l2",
+            "qvidcap",
+            "designer",
+            "voltux-roblox-player",
+            "net.brinkervii.grapejuice.robloxapp",
+            "net.brinkervii.grapejuice.robloxstudio",
+            "thunar-settings",
+            "voltux-volt-ui",
+            "voltux-manager"
+        ]
+    },
+    "utilities": {
+        "quickToggles": [
+            {
+                "enabled": true,
+                "id": "wifi"
+            },
+            {
+                "enabled": true,
+                "id": "bluetooth"
+            },
+            {
+                "enabled": true,
+                "id": "mic"
+            },
+            {
+                "enabled": true,
+                "id": "settings"
+            },
+            {
+                "enabled": true,
+                "id": "gameMode"
+            },
+            {
+                "enabled": true,
+                "id": "dnd"
+            },
+            {
+                "enabled": false,
+                "id": "vpn"
+            }
+        ]
+    }
+}

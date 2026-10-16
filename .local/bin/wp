@@ -1,0 +1,3 @@
+#!/usr/bin/env fish
+wp-list
+qs -p ~/.config/wp-picker

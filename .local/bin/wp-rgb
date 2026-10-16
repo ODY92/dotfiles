@@ -1,0 +1,34 @@
+#!/usr/bin/env fish
+# lance le serveur OpenRGB s'il ne tourne pas (le premier appel est plus lent)
+if not pgrep -x openrgb >/dev/null
+    openrgb --server &
+    disown
+    sleep 5
+end
+
+# laisse juste le temps à Caelestia d'écrire son thème
+sleep 0.5
+
+set scheme ~/.local/state/caelestia/scheme.json
+set c (jq -r '.colours.primary // empty' $scheme | string replace '#' '')
+test -n "$c"; or exit 1
+
+# couleur vive pour les LED ; blanc si le thème est gris
+set c (python3 -c "
+import colorsys, sys
+h = sys.argv[1]
+r, g, b = [int(h[i:i+2], 16) / 255 for i in (0, 2, 4)]
+H, S, V = colorsys.rgb_to_hsv(r, g, b)
+if S < 0.2:
+    print('ffffff')
+else:
+    r, g, b = colorsys.hsv_to_rgb(H, 1.0, 1.0)
+    print('%02x%02x%02x' % (round(r*255), round(g*255), round(b*255)))
+" $c)
+
+# numéros vus avec: openrgb --list-devices
+set devices 0
+
+for d in $devices
+    openrgb --device $d --mode static --color $c
+end

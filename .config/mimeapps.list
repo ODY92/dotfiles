@@ -1,0 +1,20 @@
+[Added Associations]
+text/x-python=codium.desktop;
+text/x-shellscript=codium.desktop;
+application/vnd.appimage=com.shellyorg.shelly.desktop;
+
+[Default Applications]
+x-scheme-handler/voicemod=voicemod-linux.desktop
+x-scheme-handler/roblox-player=roblox-player.desktop
+x-scheme-handler/roblox=roblox-player.desktop
+x-scheme-handler/adskidmgr=adskidmgr-opener.desktop
+application/vnd.appimage=com.shellyorg.shelly.desktop
+x-scheme-handler/roblox-studio=roblox-studio.desktop
+x-scheme-handler/roblox-studio-auth=roblox-studio-auth.desktop
+application/x-roblox-rbxl=roblox-studio.desktop
+application/x-roblox-rbxlx=roblox-studio.desktop
+text/html=firefox.desktop
+x-scheme-handler/http=firefox.desktop
+x-scheme-handler/https=firefox.desktop
+x-scheme-handler/about=firefox.desktop
+x-scheme-handler/unknown=firefox.desktop

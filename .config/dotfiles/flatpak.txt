@@ -1,0 +1,14 @@
+ai.storyteller.artcraft-launcher
+ai.storyteller.deckcraft
+ai.storyteller.pdfcraft
+ai.storyteller.wordcraft
+app.authpass.AuthPass
+com.bambulab.BambuStudio
+com.easyeda.EasyEDAPro
+com.github.KRTirtho.Spotube
+com.github.unrud.VideoDownloader
+com.usebottles.bottles
+net.brinkervii.grapejuice
+net.lutris.Lutris
+org.polymc.PolyMC
+org.vinegarhq.Sober

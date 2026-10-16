@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+DIR="${VSB_DIR:-$HOME/.local/share/vsb}"      # mets tes mp3 ici
+STATE="${XDG_RUNTIME_DIR}/vsb.modules"
+
+up() {
+  [[ -f $STATE ]] && { echo "déjà actif"; return; }
+  {
+    pactl load-module module-null-sink sink_name=vsb sink_properties=device.description=VSB
+    pactl load-module module-loopback source=@DEFAULT_SOURCE@ sink=vsb latency_msec=30
+    pactl load-module module-remap-source master=vsb.monitor source_name=vsb_mic source_properties=device.description=VSB_Mic
+  } > "$STATE"
+  echo "micro virtuel prêt : choisis « VSB_Mic » dans ton appli"
+}
+
+down() {
+  [[ -f $STATE ]] && tac "$STATE" | xargs -r -n1 pactl unload-module
+  rm -f "$STATE"
+}
+
+play() {
+  f=$(find "$DIR" -iname "$1*.mp3" | head -1)
+  [[ -n $f ]] || { echo "introuvable : $1"; exit 1; }
+  mpv --no-video --really-quiet --audio-device=pulse/vsb "$f" &   # vers le micro virtuel
+  mpv --no-video --really-quiet "$f" &                            # pour que tu l'entendes aussi
+}
+
+case "$1" in
+  up)   up ;;
+  down) down ;;
+  play) play "$2" ;;
+  stop) pkill -f "mpv --no-video --really-quiet.*$DIR" ;;
+  list) ls "$DIR" ;;
+  *)    echo "usage: vsb {up|down|play <nom>|stop|list}" ;;
+esac

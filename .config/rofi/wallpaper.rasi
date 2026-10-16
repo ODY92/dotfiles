@@ -1,0 +1,67 @@
+* {
+    accent:      #a483da;
+    accent-soft: #a483da33;
+    bg:          #14121cE6;
+    card:        #ffffff14;
+    fg:          #e6e0f0;
+}
+
+configuration {
+    show-icons: true;
+}
+
+window {
+    width: 2304px;
+    height: 1020px;
+    background-color: @bg;
+    border: 2px;
+    border-color: @accent;
+    border-radius: 28px;
+    padding: 24px;
+}
+
+mainbox {
+    background-color: transparent;
+    children: [ listview ];
+}
+
+listview {
+    background-color: transparent;
+    columns: 4;
+    lines: 3;
+    flow: horizontal;
+    fixed-columns: true;
+    spacing: 16px;
+    scrollbar: false;
+}
+
+element {
+    orientation: vertical;
+    background-color: @card;
+    text-color: @fg;
+    border-radius: 18px;
+    padding: 0px;
+    spacing: 0px;
+}
+
+element selected.normal {
+    background-color: @accent-soft;
+    border: 2px;
+    border-color: @accent;
+    text-color: @fg;
+}
+
+element-icon {
+    size: 552px;
+    margin: -138px 0px;
+    background-color: transparent;
+    horizontal-align: 0.5;
+}
+
+element-text {
+    horizontal-align: 0.5;
+    padding: 4px 0px;
+    background-color: transparent;
+    text-color: inherit;
+    font: "sans 9";
+}

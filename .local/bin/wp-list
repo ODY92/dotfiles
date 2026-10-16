@@ -1,0 +1,17 @@
+#!/usr/bin/env fish
+set base ~/.local/share/Steam/steamapps/workshop/content/431960
+set thumbs ~/.cache/wp-thumbs
+mkdir -p $thumbs
+
+for f in $base/*/project.json
+    set d (dirname $f)
+    set wid (basename $d)
+    set p (ls $d/preview.* 2>/dev/null | head -n1)
+    test -n "$p"; or continue
+    if not test -f $thumbs/$wid.png
+        ffmpeg -y -loglevel error -i $p -frames:v 1 \
+            -vf "scale=1104:552:force_original_aspect_ratio=increase,crop=1104:552" \
+            $thumbs/$wid.png
+    end
+    printf '%s\t%s\t%s\t%s\n' $wid (jq -r '.title' $f) $thumbs/$wid.png (jq -r '.type // ""' $f)
+end | jq -R -s 'split("\n") | map(select(length > 0) | split("\t") | {id: .[0], title: .[1], thumb: .[2], type: .[3]})' > ~/.cache/wp-list.json

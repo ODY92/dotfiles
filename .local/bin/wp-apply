@@ -1,0 +1,16 @@
+#!/usr/bin/env fish
+set id $argv[1]
+set base ~/.local/share/Steam/steamapps/workshop/content/431960
+echo $id > ~/.cache/wp-last
+
+pkill -f linux-wallpaperengine
+linux-wallpaperengine --screen-root DP-2 --silent $id &
+disown
+
+set prev (ls $base/$id/preview.* | head -n1)
+ffmpeg -y -loglevel error -i $prev -frames:v 1 ~/.cache/wp-preview.png
+caelestia wallpaper -f ~/.cache/wp-preview.png
+
+# couleur des LED des ventilateurs
+~/.local/bin/wp-rgb &
+disown

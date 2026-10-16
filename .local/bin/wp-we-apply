@@ -1,0 +1,17 @@
+#!/usr/bin/env fish
+set f $argv[1]
+set b (path basename $f)
+set base ~/.local/share/Steam/steamapps/workshop/content/431960
+if string match -q "preview.*" $b
+    set id (path basename (path dirname $f))
+else
+    set id (path change-extension "" $b)
+end
+if test -d $base/$id
+    ~/.local/bin/wp-apply $id
+else
+    pkill -f linux-wallpaperengine
+    caelestia wallpaper -f $f
+    ~/.local/bin/wp-rgb &
+    disown
+end

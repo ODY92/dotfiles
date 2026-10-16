@@ -1,0 +1,94 @@
+#!/usr/bin/env python3
+import bisect, json, re, shutil, subprocess, sys, textwrap, time
+import urllib.parse, urllib.request
+
+def pc(*a):
+    try:
+        return subprocess.check_output(["playerctl", *a], text=True,
+                                       stderr=subprocess.DEVNULL).strip()
+    except Exception:
+        return ""
+
+def parse(lrc):
+    out = []
+    for l in lrc.splitlines():
+        m = re.match(r"\[(\d+):(\d+(?:\.\d+)?)\](.*)", l)
+        if m:
+            out.append((int(m[1]) * 60 + float(m[2]), m[3].strip()))
+    return sorted(out)
+
+def fetch(artist, title, dur):
+    q = urllib.parse.urlencode({"artist_name": artist, "track_name": title,
+                                "duration": dur})
+    s = urllib.parse.urlencode({"q": f"{artist} {title}"})
+    for url in (f"https://lrclib.net/api/get?{q}",
+                f"https://lrclib.net/api/search?{s}"):
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": "term-lyrics/1.0"})
+            d = json.load(urllib.request.urlopen(req, timeout=8))
+        except Exception:
+            continue
+        if isinstance(d, list):
+            d = next((x for x in d if x.get("syncedLyrics")), None)
+        if d and d.get("syncedLyrics"):
+            return parse(d["syncedLyrics"])
+    return []
+
+def render(lines, idx, header):
+    w, h = shutil.get_terminal_size()
+    rows = []
+    for off in range(-2, 3):
+        i = idx + off
+        txt = lines[i][1] if 0 <= i < len(lines) else ""
+        txt = txt or "♪"
+        style = "\033[1;95m" if off == 0 else "\033[2m"
+        for part in textwrap.wrap(txt, max(w - 4, 10)) or [""]:
+            rows.append(f"{style}{part.center(w)}\033[0m")
+        rows.append("")
+    top = max((h - len(rows)) // 2, 0)
+    sys.stdout.write("\033[2J\033[H" + "\n" * top + "\n".join(rows))
+    sys.stdout.write(f"\033[1;1H\033[2m{header[:w]}\033[0m")
+    sys.stdout.flush()
+
+def message(msg):
+    w, h = shutil.get_terminal_size()
+    sys.stdout.write("\033[2J\033[H" + "\n" * (h // 2) + f"\033[2m{msg.center(w)}\033[0m")
+    sys.stdout.flush()
+
+def main():
+    sys.stdout.write("\033[?25l")
+    track, lines, last = None, [], None
+    try:
+        while True:
+            meta = pc("metadata", "--format",
+                      "{{artist}}\t{{title}}\t{{mpris:length}}")
+            if not meta or meta.count("\t") < 2:
+                message("Aucune lecture en cours")
+                track = last = None
+                time.sleep(1); continue
+            artist, title, length = meta.split("\t")
+            if (artist, title) != track:
+                track = (artist, title)
+                message("Recherche des paroles…")
+                dur = int(length) // 1_000_000 if length.isdigit() else 0
+                lines = fetch(artist, title, dur)
+                last = None
+            if not lines:
+                message(f"Pas de paroles synchronisées : {artist} – {title}")
+                time.sleep(1); continue
+            try:
+                pos = float(pc("position"))
+            except ValueError:
+                time.sleep(0.2); continue
+            idx = bisect.bisect_right([t for t, _ in lines], pos) - 1
+            state = (idx, shutil.get_terminal_size())
+            if state != last:
+                render(lines, idx, f"{artist} – {title}")
+                last = state
+            time.sleep(0.15)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        sys.stdout.write("\033[?25h\033[2J\033[H")
+
+main()
