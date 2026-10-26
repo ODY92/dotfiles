@@ -46,3 +46,9 @@ if status is-interactive
 end
 
 alias yt="/home/ulysse/ytdl.sh"
+
+# opencode
+fish_add_path /home/ulysse/.opencode/bin
+
+# Hermes Agent command
+fish_add_path "$HOME/.local/bin"

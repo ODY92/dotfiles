@@ -5,7 +5,7 @@ if hl.plugin.hypr3d then
     hl.bind("SUPER + F12", hypr3d.close)
 
     hypr3d.on_state(function(open)
-        hl.config({ input = { kb_layout = open and "us" or "fr" } })
+        hl.config({ input = { kb_layout = open and "us" or "fr,us" } })
     end)
 
     hypr3d.config({
@@ -19,9 +19,9 @@ if hl.plugin.hypr3d then
             spawn = {0, 2, 0},
         },
         scene = {
-            backrooms = {
+            dust2 = {
                 mesh = {
-                    path = "~/hypr3d/backrooms.glb",
+                    path = "~/hypr3d/dust2.glb",
                     transform = {
                         position = {0, 0, 0},
                         scale = {1, 1, 1},

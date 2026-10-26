@@ -1,0 +1,16 @@
+# X-SLSteamMoon-GuardianUnit=true
+[Unit]
+Description=Watch desktop launch sources for reconciliation
+
+[Path]
+PathChanged=/home/ulysse/.local/share/applications
+PathChanged=/home/ulysse/.local/share/flatpak/exports/share/applications
+PathChanged=/var/lib/flatpak/exports/share/applications
+PathChanged=/usr/share/applications
+PathChanged=/home/ulysse/.config/autostart
+PathChanged=/etc/xdg/autostart
+PathChanged=/home/ulysse/Bureau
+Unit=slsteam-desktop-guardian.service
+
+[Install]
+WantedBy=default.target

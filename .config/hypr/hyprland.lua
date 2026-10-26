@@ -59,7 +59,7 @@ hl.monitor({
 })
 
 hl.on("hyprland.start", function()
-	hl.exec_cmd("caelestia shell")
+-- 	hl.exec_cmd("caelestia shell")
 end)
 
 -- Configs
@@ -91,7 +91,7 @@ if hl.plugin.hyprglass then
         refraction_strength = 0.2,      -- Intensité de réfraction des bords (0.0-1.0)
         fresnel_strength = 0.6,         -- Intensité de la lueur sur les angles (0.0-1.0)
         specular_strength = 0.8,        -- Luminosité des reflets spéculaires (0.0-1.0)
-        glass_opacity = 0.0,            -- Opacité globale du verre (0.0-1.0)
+        glass_opacity = 0.25,            -- Opacité globale du verre (0.0-1.0)
         edge_thickness = 0.06           -- Largeur de la bordure / biseau (0.0 - 0.15)
     })
 end
@@ -114,3 +114,45 @@ dofile(os.getenv("HOME") .. "/.config/hypr/hypr3d.lua")
 
 -- Added by hyprmoncfg: its generated monitor rules load last, so nothing before this can override the applied layout.
 do local path = os.getenv("HOME") .. "/.config/hypr/hyprmoncfg-monitors.lua"; local file = io.open(path, "r"); if file then file:close(); dofile(path) end end
+
+
+if hl.plugin.hyprglass then
+    local hg = hl.plugin.hyprglass
+
+    hg.config({
+        layers = {
+            enabled = true,
+            live_resample = true,
+            manage_blur = true,
+        },
+    })
+
+    hg.layer("caelestia-drawers", { preset = "pomme", mask_threshold = 0.05 })
+    hg.preset("spotlight-clear", {
+        inherits = "pomme",
+        glass_opacity = 0.55,
+        tint_color = 0x00000000,
+        blur_strength = 1.0,
+        refraction_strength = 0.30,
+        fresnel_strength = 0.65,
+        specular_strength = 0.8,
+        edge_thickness = 0.045,
+    })
+    hg.layer("spotlight26", { preset = "spotlight-clear", mask_mode = "contour", mask_threshold = 0.1, mask_feather = 0.03 })
+end
+
+
+hl.layer_rule({
+    match = { namespace = "caelestia-drawers" },
+    name = "caelestia-drawers-blur",
+    blur = true,
+    ignore_alpha = 0.1,
+})
+
+hl.layer_rule({
+    match = { namespace = "spotlight26" },
+    name = "spotlight26-glass",
+    blur = true,
+    ignore_alpha = 0.1,
+    no_anim = true,
+})

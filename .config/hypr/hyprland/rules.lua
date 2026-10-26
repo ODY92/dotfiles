@@ -135,7 +135,7 @@ tagged_rule(xwl_popup_tag, {
 tagged_rule(system_monitor_tag, { "btop" }, "class")
 tagged_rule(music_player_tag, {
     "feishin|Supersonic|Plexamp",                                  -- Self hosted
-    "Spotify",                                                     -- Spotify
+    "Riff",                                                     -- Liner (better spotify)
     "Cider",                                                       -- Apple music
     "com.github.th-ch.youtube-music|com-maxrave-simpmusic-MainKt", -- YouTube music
 }, "class")
@@ -217,3 +217,15 @@ hl.layer_rule({ match = { namespace = "launcher" }, animation = "popin 80%", blu
 -- Shell
 hl.layer_rule({ match = { namespace = "caelestia-(border-exclusion|area-picker)" }, no_anim = true })
 hl.layer_rule({ match = { namespace = "caelestia-(drawers|background)" }, animation = "fade" })
+
+-- Kingfisher's transparent drawing surface must not become a glass panel.
+hl.window_rule({
+    match = { title = "^KingfisherOverlay$" },
+    tag = "+hyprglass_disabled",
+    no_blur = true,
+    no_shadow = true,
+    no_dim = true,
+    rounding = 0,
+    border_size = 0,
+    opacity = "1.0 override 1.0 override 1.0 override",
+})

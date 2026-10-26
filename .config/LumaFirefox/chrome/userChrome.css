@@ -1,0 +1,74 @@
+@import url("luma-colors.css");
+@-moz-document url("chrome://browser/content/browser.xhtml") {
+  :root {
+    --lwt-accent-color: var(--luma-surface) !important;
+    --lwt-text-color: var(--luma-text) !important;
+    --toolbar-bgcolor: var(--luma-container) !important;
+    --toolbar-color: var(--luma-text) !important;
+    --toolbar-field-background-color: var(--luma-surface) !important;
+    --toolbar-field-color: var(--luma-text) !important;
+    --toolbar-field-focus-background-color: var(--luma-container) !important;
+    --toolbar-field-focus-color: var(--luma-text) !important;
+    --toolbar-field-focus-border-color: var(--luma-primary) !important;
+    --toolbarbutton-border-radius: 10px !important;
+    --tab-selected-bgcolor: color-mix(in srgb, var(--luma-primary) 22%, var(--luma-container)) !important;
+    --tab-border-radius: 18px !important;
+    --sidebar-background-color: var(--luma-container) !important;
+    --sidebar-text-color: var(--luma-text) !important;
+    --chrome-content-separator-color: transparent !important;
+    --focus-outline-color: var(--luma-primary) !important;
+    color-scheme: dark !important;
+  }
+  #navigator-toolbox {
+    background: linear-gradient(110deg, color-mix(in srgb, var(--luma-primary) 15%, var(--luma-container)), var(--luma-container) 70%) !important;
+    border-bottom: 0 !important;
+    padding: 4px 7px 2px !important;
+  }
+  #nav-bar { background: transparent !important; box-shadow: none !important; border: none !important; padding-block: 2px !important; }
+  #urlbar-background { border-radius: 10px !important; border-color: #ffffff09 !important; }
+  #urlbar { font-size: 15.6px !important; }
+  .urlbarView { font-size: 15.6px !important; }
+  .urlbarView-title, .urlbarView-url, .urlbarView-action, .urlbarView-row {
+    font-size: 15.6px !important;
+    line-height: 1.45 !important;
+  }
+  .urlbarView-group-label { font-size: 13.2px !important; }
+  .urlbarView-row-inner { padding-block: 8px !important; }
+  #PersonalToolbar { background: var(--luma-container) !important; }
+  #browser { background: var(--luma-container) !important; padding: 0 7px 7px 0 !important; }
+  #tabbrowser-tabbox { border-radius: 11px !important; overflow: hidden !important; outline: 1px solid #ffffff06 !important; box-shadow: none !important; }
+  #sidebar-main, #sidebar-box { background: var(--luma-container) !important; }
+  #sidebar-main { border: 0 !important; }
+  #sidebar-splitter { border: 0 !important; background: transparent !important; width: 4px !important; }
+  .tab-background { border-radius: 18px !important; margin-block: 4px !important; }
+  .tabbrowser-tab { padding-inline: 3px !important; }
+  .tab-background[selected] { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--luma-primary) 40%, transparent) !important; }
+  .tabbrowser-tab:hover .tab-background:not([selected]) { background: color-mix(in srgb, var(--luma-primary) 10%, transparent) !important; }
+  #TabsToolbar .titlebar-spacer { display: none !important; }
+  #identity-box, #tracking-protection-icon-container { border-radius: 6px !important; }
+  .titlebar-buttonbox { align-items: center !important; gap: 8px !important; padding-inline: 10px !important; }
+  .titlebar-button {
+    appearance: none !important;
+    min-width: 14px !important;
+    width: 14px !important;
+    min-height: 14px !important;
+    height: 14px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: 1px solid #0002 !important;
+    border-radius: 50% !important;
+    background-image: none !important;
+    box-shadow: none !important;
+    align-self: center !important;
+  }
+  .titlebar-button .toolbarbutton-icon { display: none !important; }
+  .titlebar-close { display: flex !important; order: 0 !important; background-color: #ff5f57 !important; }
+  .titlebar-min { display: flex !important; order: 1 !important; background-color: #febc2e !important; }
+  .titlebar-max, .titlebar-restore { order: 2 !important; background-color: #28c840 !important; }
+  .titlebar-max { display: flex !important; }
+  .titlebar-restore { display: none !important; }
+  :root[sizemode="maximized"] .titlebar-max { display: none !important; }
+  :root[sizemode="maximized"] .titlebar-restore { display: flex !important; }
+  .titlebar-button:hover { filter: brightness(1.15) !important; }
+  .titlebar-button:active { filter: brightness(.8) !important; }
+}

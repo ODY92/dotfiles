@@ -1,0 +1,7 @@
+{
+  "default_mode": "web",
+  "theme_files": [
+    "~/.config/sphere-launcher/matugen.json",
+    "~/.local/state/caelestia/scheme.json"
+  ]
+}

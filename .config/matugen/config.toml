@@ -1,0 +1,13 @@
+[config]
+
+[templates.sphere-launcher]
+input_path = '~/.config/matugen/templates/sphere-launcher.json'
+output_path = '~/.config/sphere-launcher/matugen.json'
+
+[templates.luma]
+input_path = '~/Documents/Codex/2026-10-26/luma/firefox/matugen-colors.css'
+output_path = '~/.config/LumaFirefox/chrome/luma-colors.css'
+
+[templates.luma-source]
+input_path = '~/Documents/Codex/2026-10-26/luma/firefox/matugen-colors.css'
+output_path = '~/Documents/Codex/2026-10-26/luma/firefox/chrome/luma-colors.css'

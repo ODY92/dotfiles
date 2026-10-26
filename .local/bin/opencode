@@ -1,0 +1,2 @@
+#!/bin/sh
+setsid -f "$HOME/Applications/opencode.AppImage" "$@" >/dev/null 2>&1

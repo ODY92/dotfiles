@@ -2,6 +2,7 @@
 text/x-python=codium.desktop;
 text/x-shellscript=codium.desktop;
 application/vnd.appimage=com.shellyorg.shelly.desktop;
+application/pdf=firefox.desktop;
 
 [Default Applications]
 x-scheme-handler/voicemod=voicemod-linux.desktop
@@ -18,3 +19,5 @@ x-scheme-handler/http=firefox.desktop
 x-scheme-handler/https=firefox.desktop
 x-scheme-handler/about=firefox.desktop
 x-scheme-handler/unknown=firefox.desktop
+x-scheme-handler/codex=chatgpt.desktop
+x-scheme-handler/claude-cli=claude-code-url-handler.desktop

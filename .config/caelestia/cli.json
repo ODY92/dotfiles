@@ -1,0 +1,13 @@
+{
+  "toggles": {
+    "music": {
+      "spotify": { "enable": false },
+      "liner": {
+        "enable": true,
+        "match": [{ "class": "liner" }],
+        "command": ["/home/ulysse/Applications/Liner.AppImage", "--ozone-platform=x11"],
+        "move": true
+      }
+    }
+  }
+}

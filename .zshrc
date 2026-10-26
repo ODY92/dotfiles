@@ -17,3 +17,7 @@ alias yt="ytdl.sh"
 alias fix="echo 'WINEDLLOVERRIDES=\"winmm=n,b;steam_api64=n,b;OnlineFix64=n,b\" %command%' | wl-copy && echo \"Texte copié dans le presse-papier !\""
 alias bios="systemctl reboot --firmware-setup"
 alias dotf='nocorrect git --git-dir=$HOME/.dotfiles --work-tree=$HOME'
+alias cheat='cd ~/Linux-CS2-External/build && ./LinuxCS2'
+alias deban='sudo timedatectl set-ntp false && sudo date -s "+8 days"'
+alias normaltime='sudo timedatectl set-ntp true'
+alias thefinals='/home/ulysse/Documents/Codex/2026-10-23/kingfisher-you-re-kingfisher-the-maker-5/outputs/kingfisher-finals/run.sh'

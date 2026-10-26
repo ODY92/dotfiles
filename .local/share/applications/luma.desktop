@@ -1,0 +1,30 @@
+[Desktop Entry]
+Type=Application
+Name=Luma
+Comment=Espace de navigation Firefox avec le thème Luma
+Exec=/home/ulysse/.local/bin/luma %u
+Icon=/home/ulysse/Documents/Codex/2026-10-26/luma/icon.png
+Terminal=false
+Categories=Network;WebBrowser;
+StartupWMClass=Luma
+Actions=Private;Sync;Import;Blocker;Memory;
+
+[Desktop Action Private]
+Name=Nouvelle fenêtre privée
+Exec=/home/ulysse/.local/bin/luma --private-window
+
+[Desktop Action Sync]
+Name=Connecter mon compte Firefox
+Exec=/home/ulysse/.local/bin/luma "about:preferences#sync"
+
+[Desktop Action Import]
+Name=Importer mes données
+Exec=/home/ulysse/.local/bin/luma "about:preferences#general"
+
+[Desktop Action Blocker]
+Name=uBlock Origin — fiche officielle
+Exec=/home/ulysse/.local/bin/luma https://addons.mozilla.org/fr/firefox/addon/ublock-origin/
+
+[Desktop Action Memory]
+Name=Diagnostiquer la mémoire
+Exec=/home/ulysse/.local/bin/luma about:processes

@@ -1,0 +1,55 @@
+@import url("luma-colors.css");
+@-moz-document url-prefix("about:home"), url-prefix("about:newtab"), url-prefix("resource://activity-stream/"), url-prefix("resource://newtab/"), regexp("moz-extension://[^/]+/(prerendered/activity-stream[^/]*[.]html|data/content/remote-renderer-host[.]html)([?#].*)?") {
+  :root, body, #root {
+    --background-color-canvas: var(--luma-surface) !important;
+    --background-color-box: var(--luma-container) !important;
+    --card-background-color: var(--luma-container) !important;
+    --text-color: var(--luma-text) !important;
+    --text-color-deemphasized: var(--luma-muted) !important;
+    --color-accent-primary: var(--luma-primary) !important;
+    --color-accent-primary-hover: var(--luma-primary) !important;
+    --icon-color-accent-primary: var(--luma-primary) !important;
+    --icon-color-accent-primary-desaturated: var(--luma-primary) !important;
+    --border-color: color-mix(in srgb, var(--luma-outline) 30%, transparent) !important;
+    --newtab-wallpaper: none !important;
+    --newtab-wallpaper-color: var(--luma-surface) !important;
+    --newtab-layout-panel-background: var(--luma-container) !important;
+    --newtab-background-card: var(--luma-container) !important;
+    --newtab-background-color-secondary: var(--luma-container) !important;
+    --newtab-background-color: var(--luma-surface) !important;
+    --newtab-text-primary-color: var(--luma-text) !important;
+    --newtab-text-secondary-color: var(--luma-muted) !important;
+    --newtab-element-hover-color: var(--luma-container) !important;
+    --newtab-element-secondary-color: var(--luma-container) !important;
+    --newtab-primary-action-background: var(--luma-primary) !important;
+    --newtab-search-background-color: var(--luma-container) !important;
+    --newtab-search-icon-color: var(--luma-muted) !important;
+    --newtab-search-wordmark-color: var(--luma-text) !important;
+  }
+  body { background: var(--luma-surface) !important; color: var(--luma-text) !important; background-image: none !important; }
+  .wallpaper-attribution { display: none !important; }
+  .outer-wrapper { padding-top: min(23vh, 170px) !important; justify-content: start !important; }
+  .logo-and-wordmark { gap: 17px !important; margin-bottom: 44px !important; }
+  .logo-and-wordmark .logo {
+    background: url("luma.png") center / contain no-repeat !important;
+    width: 82px !important; height: 82px !important;
+    border-radius: 16px !important;
+    overflow: hidden !important;
+  }
+  .logo-and-wordmark .wordmark {
+    background: none !important; width: 146px !important; height: 65px !important;
+    display: flex !important; align-items: center !important;
+  }
+  .logo-and-wordmark .wordmark::after {
+    content: "Luma"; font: 650 48px system-ui !important; letter-spacing: -2px; color: var(--luma-text);
+  }
+  .search-wrapper { width: min(600px, 80vw) !important; padding-bottom: 30px !important; }
+  .search-wrapper .search-handoff-button, .search-wrapper input {
+    background-color: var(--luma-container) !important; border: 1px solid color-mix(in srgb, var(--luma-outline) 25%, transparent) !important;
+    border-radius: 9px !important; box-shadow: 0 2px 6px #0002 !important;
+  }
+  .search-wrapper .search-handoff-button { min-height: 46px !important; }
+  .top-site-outer .tile { background: var(--luma-container) !important; border-radius: 12px !important; box-shadow: none !important; }
+  .top-sites-list { gap: 8px !important; }
+  .personalize-button { opacity: .65 !important; }
+}

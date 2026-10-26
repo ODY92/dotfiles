@@ -1,0 +1,2 @@
+#!/bin/sh
+exec python3 '/home/ulysse/Documents/Codex/2026-10-23/kingfisher-you-re-kingfisher-the-maker/outputs/kingfisher/launch.py' "$@"

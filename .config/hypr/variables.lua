@@ -36,14 +36,14 @@ return {
 
     -- Gaps
     workspaceGaps              = 20,
-    windowGapsIn               = 4,
-    windowGapsOut              = 0,
+    windowGapsIn               = 8,
+    windowGapsOut              = 14,
     singleWindowGapsOut        = 10,
 
     -- Window styling
     windowOpacity              = 0.80,
-    windowRounding             = 20,
-    windowRoundingPower        = 4,
+    windowRounding             = 40,
+    windowRoundingPower        = 3,
     windowBorderSize           = 0,
     activeWindowBorderColour   = "rgba(" .. scheme.primary .. "e6)",
     inactiveWindowBorderColour = "rgba(" .. scheme.onSurfaceVariant .. "11)",
@@ -52,7 +52,7 @@ return {
     volumeStep                 = 5,
     volumeMax                  = 100,
     cursorTheme                = "WhiteSur-cursors",
-    cursorSize                 = 30,
+    cursorSize                 = 40,
     sleepGestureCmd            = "systemctl suspend-then-hibernate",
 
     ------------------

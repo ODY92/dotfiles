@@ -2,7 +2,8 @@ local vars = require("variables")
 
 hl.config({
     input = {
-        kb_layout          = "fr",
+        kb_layout          = "fr,us",
+        kb_variant         = "azerty", -- Ajoute cette ligne pour forcer la variante AZERTY stricte
         numlock_by_default = false,
         repeat_delay       = 250,
         repeat_rate        = 35,

@@ -1,0 +1,6 @@
+#!/bin/sh
+SPOTLIGHT_ROOT="/home/ulysse/.local/share/spotlight26"
+export GI_TYPELIB_PATH="$SPOTLIGHT_ROOT/runtime/usr/lib/girepository-1.0${GI_TYPELIB_PATH:+:$GI_TYPELIB_PATH}"
+export LD_LIBRARY_PATH="$SPOTLIGHT_ROOT/runtime/usr/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+if [ -n "${WAYLAND_DISPLAY:-}" ]; then export GDK_BACKEND=wayland; fi
+exec /usr/bin/python3 "$SPOTLIGHT_ROOT/main.py" "$@"

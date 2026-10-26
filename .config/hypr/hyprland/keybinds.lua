@@ -60,6 +60,8 @@ create_bind(
 )
 
 -- Misc
+create_bind("ALT + Space", hl.dsp.exec_cmd("/home/ulysse/.local/bin/spotlight26 --toggle"))
+
 create_bind(vars.kbSession, hl.dsp.global("caelestia:session"))
 create_bind(vars.kbShowSidebar, hl.dsp.global("caelestia:sidebar"))
 create_bind(vars.kbClearNotifs, hl.dsp.global("caelestia:clearNotifs"), locked)

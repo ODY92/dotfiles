@@ -8,19 +8,27 @@
     },
     "bar": {
         "activeWindow": {
-            "compact": false
+            "compact": false,
+            "inverted": false,
+            "showOnHover": false
         },
         "clock": {
             "background": true,
-            "showDate": false,
+            "showDate": true,
             "showIcon": false
         },
+        "dragThreshold": 20,
         "persistent": true,
+        "popouts": {
+            "statusIcons": false,
+            "tray": false
+        },
         "scrollActions": {
             "brightness": false,
             "volume": false,
             "workspaces": false
         },
+        "showOnHover": true,
         "statusIcons": [
             {
                 "enabled": true,
@@ -51,12 +59,36 @@
                 "id": "battery"
             }
         ],
+        "tray": {
+            "background": false,
+            "compact": false,
+            "recolour": false
+        },
         "workspaces": {
             "activeIndicator": true,
+            "activeTrail": false,
+            "occupiedBg": false,
             "perMonitor": true,
+            "perMonitorWorkspaces": false,
             "showWindows": false,
             "showWindowsOnSpecialWorkspaces": true
         }
+    },
+    "border": {
+        "rounding": 0,
+        "thickness": 0
+    },
+    "dashboard": {
+        "enabled": true,
+        "showOnHover": true
+    },
+    "general": {
+        "apps": {
+            "terminal": [
+                "kitty"
+            ]
+        },
+        "logo": "/usr/share/pixmaps/archlinux-logo.svg"
     },
     "launcher": {
         "actionPrefix": "=",

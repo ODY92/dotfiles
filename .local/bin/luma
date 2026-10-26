@@ -1,0 +1,3 @@
+#!/bin/sh
+export MOZ_APP_REMOTINGNAME=luma
+exec /usr/bin/firefox --profile /home/ulysse/.config/LumaFirefox --class Luma --name Luma "$@"

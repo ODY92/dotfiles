@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Spotlight 26
+Comment=Recherche rapide — applications, fichiers, actions et presse-papiers
+Exec=/home/ulysse/.local/bin/spotlight26 --toggle
+Icon=system-search
+Terminal=false
+Categories=Utility;
+StartupNotify=false

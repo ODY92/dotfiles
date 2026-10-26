@@ -8,6 +8,7 @@ com.easyeda.EasyEDAPro
 com.github.KRTirtho.Spotube
 com.github.unrud.VideoDownloader
 com.usebottles.bottles
+gg.dawn.Launcher
 net.brinkervii.grapejuice
 net.lutris.Lutris
 org.polymc.PolyMC
