@@ -1,0 +1,7 @@
+[hyprglass]
+repository = "https://github.com/hyprnux/hyprglass"
+revision = "14df05f8bfcc0c5df9f66e5fbc6d71bb2a7c0475"
+
+[hypr3d]
+repository = "https://github.com/samine825/Hypr3D"
+revision = "9301dcf6d0625daf632d5be04f2a3cefabec1769"

@@ -1,5 +1,7 @@
 # Configuration CachyOS — ODY92
 
+Le guide complet pour un Arch vierge, avec les commandes, modes `--desktop` / `--full` et les étapes de vérification, est le [README à la racine du dépôt](../../README.md). L’installateur inclut maintenant les dépendances du bureau et l’application des fichiers QML personnalisés de `caelestia-overlay/` après copie de la base Caelestia installée.
+
 Sauvegarde de la configuration courante du bureau et des outils personnels, mise à jour le 26 octobre 2026. Le dépôt est géré en mode bare avec `~/.dotfiles` et le dossier personnel comme arbre de travail.
 
 ## Éléments synchronisés
