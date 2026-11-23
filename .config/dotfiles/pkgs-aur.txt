@@ -1,6 +1,7 @@
 android-studio
+antigravity
+antigravity-cli
 arduino-ide-bin
-astralrinth-bin
 auto_sober
 cachy-engine
 caelestia-cli
@@ -9,7 +10,9 @@ caelestia-shell
 chatgpt-desktop
 clock-rs-git
 darkly-bin
+dmg2img
 equibop-bin
+equicord-installer-bin
 google-chrome
 hw-monitor
 hyprmoncfg-bin
@@ -17,12 +20,14 @@ iris-colors
 lavat
 linux-wallpaperengine-git
 localsend-bin
+opencode-beta
 openoffice-bin
 opsec
 papirus-folders
 peaclock
 qbittorrent-git
 qtengine
+sndio7-compat
 sober-bin
 spicetify-cli
 spicetify-marketplace-bin
@@ -32,3 +37,5 @@ ttf-apple-emoji
 vinegar
 vscodium-bin
 vscodium-bin-marketplace
+whispy
+yapfast

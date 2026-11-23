@@ -1,0 +1,127 @@
+#!/usr/bin/env python3
+"""Basculer la configuration Hyprland entre MacShell et Caelestia."""
+import argparse
+import fcntl
+import os
+from pathlib import Path
+import shutil
+import subprocess
+import sys
+import time
+
+HOME = Path.home()
+CONFIG = HOME / '.config/hypr'
+STATE = HOME / '.local/share/macshell/shell-switch'
+FILES = ('hyprland.lua', 'hyprland/execs.lua', 'hyprland/keybinds.lua')
+NAMES = {'macshell': ('MacShell',), 'caelestia': ('caelestia', 'dynamic-island')}
+
+
+def current():
+    text = (CONFIG / 'hyprland/execs.lua').read_text()
+    active = '\n'.join(line for line in text.splitlines() if not line.lstrip().startswith('--'))
+    if 'macshell-start' in active:
+        return 'macshell'
+    if 'caelestia shell' in active:
+        return 'caelestia'
+    raise RuntimeError('Interface actuelle inconnue : configuration conservee.')
+
+
+def copy_config(source, destination):
+    for name in FILES:
+        target = destination / name
+        target.parent.mkdir(parents=True, exist_ok=True)
+        # Copy through existing dotfile symlinks.
+        shutil.copyfile(source / name, target)
+
+
+def validate(folder):
+    for name in FILES:
+        subprocess.run(['luac', '-p', str(folder / name)], check=True, capture_output=True)
+
+
+def running(name):
+    pattern = r'(^|/)(qs|quickshell)( .*)? (-c|--config) ' + name + r'( |$)'
+    return subprocess.run(['pgrep', '-u', str(os.getuid()), '-f', pattern],
+                          stdout=subprocess.DEVNULL).returncode == 0
+
+
+def stop(mode):
+    for name in NAMES[mode]:
+        subprocess.run(['qs', '-c', name, 'kill'], capture_output=True, timeout=8)
+    deadline = time.monotonic() + 8
+    while any(running(name) for name in NAMES[mode]):
+        if time.monotonic() > deadline:
+            raise RuntimeError('L’ancienne interface ne s’est pas arretee.')
+        time.sleep(.1)
+
+
+def start(mode):
+    commands = {'macshell': [('MacShell', ['sh', str(HOME / '.local/bin/macshell-start')])],
+                'caelestia': [('caelestia', ['caelestia', 'shell', '-d']),
+                              ('dynamic-island', ['qs', '-c', 'dynamic-island', '-n', '-d'])]}
+    log_dir = HOME / '.local/state/macshell'
+    log_dir.mkdir(parents=True, exist_ok=True)
+    with (log_dir / 'shell-switch.log').open('a') as log:
+        for name, command in commands[mode]:
+            if not running(name):
+                subprocess.Popen(command, stdin=subprocess.DEVNULL, stdout=log,
+                                 stderr=log, start_new_session=True)
+    deadline = time.monotonic() + 12
+    while not all(running(name) for name in NAMES[mode]):
+        if time.monotonic() > deadline:
+            raise RuntimeError('Demarrage incomplet. Voir ~/.local/state/macshell/shell-switch.log')
+        time.sleep(.1)
+    subprocess.run([str(HOME / '.local/bin/wallpaper-shared'), 'ensure'], check=True)
+
+
+def reload_config():
+    subprocess.run(['hyprctl', 'reload'], check=True, capture_output=True)
+    errors = subprocess.check_output(['hyprctl', 'configerrors'], text=True).strip()
+    if errors:
+        raise RuntimeError(errors)
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('interface', choices=('macshell', 'caelestia', 'status'))
+    parser.add_argument('--dry-run', action='store_true', help='Verifier sans changer l’interface')
+    args = parser.parse_args()
+    STATE.mkdir(parents=True, exist_ok=True)
+    with (STATE / '.lock').open('w') as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        previous = current()
+        if args.interface == 'status':
+            print('Interface configuree : ' + previous)
+            return
+        target = args.interface
+        validate(CONFIG)
+        validate(STATE / target)
+        if args.dry_run:
+            print(f'OK : {previous} → {target}. Configuration Lua valide ; aucun changement effectue.')
+            return
+        if previous == target:
+            start(target)
+            print(target + ' est actif et configure au demarrage.')
+            return
+        # Remember changes made while using each interface before leaving it.
+        copy_config(CONFIG, STATE / previous)
+        try:
+            stop(previous)
+            copy_config(STATE / target, CONFIG)
+            reload_config()
+            start(target)
+        except Exception:
+            stop(target)
+            copy_config(STATE / previous, CONFIG)
+            reload_config()
+            start(previous)
+            raise
+        print(target + ' est actif et configure au demarrage.')
+
+
+if __name__ == '__main__':
+    try:
+        main()
+    except (RuntimeError, OSError, subprocess.SubprocessError) as error:
+        print('Erreur : ' + str(error), file=sys.stderr)
+        sys.exit(1)

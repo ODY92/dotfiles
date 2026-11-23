@@ -10,6 +10,7 @@ import qs.services
 StyledRect {
     id: root
 
+    property var bar: null
     readonly property alias layout: layout
     readonly property alias items: items
 
@@ -37,7 +38,10 @@ StyledRect {
                 values: SystemTray.items.values.filter(i => !GlobalConfig.bar.tray.hiddenIcons.includes(i.id))
             }
 
-            TrayItem {}
+            TrayItem {
+                bar: root.bar
+                horizontal: true
+            }
         }
     }
 }

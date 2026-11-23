@@ -52,3 +52,10 @@ fish_add_path /home/ulysse/.opencode/bin
 
 # Hermes Agent command
 fish_add_path "$HOME/.local/bin"
+
+# Added by LM Studio CLI tool (lms)
+set -gx PATH $PATH /home/ulysse/.lmstudio/bin
+
+# bun
+set --export BUN_INSTALL "$HOME/.bun"
+set --export PATH $BUN_INSTALL/bin $PATH

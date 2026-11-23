@@ -82,7 +82,7 @@ CustomMouseArea {
             if (!utilitiesShortcutActive)
                 screenState.utilities = false;
 
-            if (!popouts.currentName.startsWith("traymenu") || ((popouts.current as StackView)?.depth ?? 0) <= 1) {
+            if (!popouts.clickOpened && (!popouts.currentName.startsWith("traymenu") || ((popouts.current as StackView)?.depth ?? 0) <= 1)) {
                 popouts.hasCurrent = false;
                 bar.closeTray();
             }
@@ -242,12 +242,14 @@ CustomMouseArea {
             utilitiesShortcutActive = false;
         }
 
-        // Show popouts on hover
-        if (onBar) {
-            bar.checkPopout(bar.along(x, y));
-        } else if ((!popouts.currentName.startsWith("traymenu") || ((popouts.current as StackView)?.depth ?? 0) <= 1) && !inPopout(panels.popoutsWrapper, x, y)) {
-            popouts.hasCurrent = false;
-            bar.closeTray();
+        // Show popouts on hover (unless a popout was explicitly opened by clicking)
+        if (!popouts.clickOpened) {
+            if (onBar) {
+                bar.checkPopout(bar.along(x, y));
+            } else if ((!popouts.currentName.startsWith("traymenu") || ((popouts.current as StackView)?.depth ?? 0) <= 1) && !inPopout(panels.popoutsWrapper, x, y)) {
+                popouts.hasCurrent = false;
+                bar.closeTray();
+            }
         }
     }
 
@@ -277,7 +279,7 @@ CustomMouseArea {
         function onDashboardChanged() {
             if (root.screenState.dashboard) {
                 // Dashboard became visible, immediately check if this should be shortcut mode
-                const inDashboardArea = root.inTopPanel(root.panels.dashboard, root.mouseX, root.mouseY);
+                const inDashboardArea = !root.bar.inBar(root.mouseX, root.mouseY) && root.inTopPanel(root.panels.dashboard, root.mouseX, root.mouseY);
                 if (!inDashboardArea) {
                     root.dashboardShortcutActive = true;
                 }

@@ -9,6 +9,7 @@ import qs.services
 StyledRect {
     id: root
 
+    property var bar: null
     readonly property color colour: Colours.palette.m3tertiary
     readonly property int padding: Config.bar.clock.background ? Tokens.padding.medium : Tokens.padding.extraSmall
 
@@ -17,6 +18,17 @@ StyledRect {
 
     color: Qt.alpha(Colours.tPalette.m3surfaceContainer, Config.bar.clock.background ? Colours.tPalette.m3surfaceContainer.a : 0)
     radius: Tokens.rounding.full
+
+    StateLayer {
+        radius: Tokens.rounding.full
+        onClicked: {
+            if (root.bar?.popouts)
+                root.bar.popouts.close();
+            const s = root.bar?.screenState ?? ShellState.forActive();
+            if (s)
+                s.dashboard = !s.dashboard;
+        }
+    }
 
     RowLayout {
         id: layout

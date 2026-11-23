@@ -1,8 +1,8 @@
 :root {
-  --luma-primary: #9ad4a1;
-  --luma-surface: #101510;
-  --luma-container: #1c211c;
-  --luma-text: #dfe4dc;
-  --luma-muted: #c1c9be;
-  --luma-outline: #8b9389;
+  --luma-primary: #ffb0ca;
+  --luma-surface: #191114;
+  --luma-container: #261d20;
+  --luma-text: #efdfe2;
+  --luma-muted: #d5c2c6;
+  --luma-outline: #9e8c90;
 }

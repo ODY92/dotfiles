@@ -1,5 +1,6 @@
-hl.env("HYPRCURSOR_THEME", "MacTahoe-Tailless")
-hl.env("HYPRCURSOR_SIZE", "64")
+-- Keep the compositor and application cursors on the same Apple Cursor theme.
+hl.env("HYPRCURSOR_THEME", "macOS")
+hl.env("HYPRCURSOR_SIZE", "42")
 hl.config({ cursor = { enable_hyprcursor = true, sync_gsettings_theme = true } })
 
 local function configure_pointer()
@@ -10,7 +11,23 @@ local function configure_pointer()
         plugin = {
             dynamic_cursors = {
                 enabled = true,
-                mode = "none",
+                mode = "tilt",
+                threshold = 0.15,
+                tilt = {
+                    full = 10,
+                    limit = 2200,
+                    window = 60,
+                    activation = "negative_quadratic",
+                },
+                immersive = {
+                    click_enabled = true,
+                    click_scale = 0.90,
+                    blur_enabled = true,
+                    blur_strength = 0.45,
+                    blur_shutter = 0.008,
+                    blur_limit = 14.0,
+                },
+                -- Movement is tracked through onCursorMoved for plugin compatibility.
                 ignore_warps = false,
                 shake = {
                     enabled = true,
@@ -21,10 +38,15 @@ local function configure_pointer()
                     limit = 2.5,
                     timeout = 500,
                 },
-                hyprcursor = { enabled = true, resolution = 160, nearest = 0 },
+                hyprcursor = { enabled = true, resolution = 96, nearest = 0 },
             },
         },
     })
 end
 
 configure_pointer()
+
+-- The loader checks the Hyprland ABI before loading the locally built plugin.
+hl.on("hyprland.start", function()
+    hl.exec_cmd(os.getenv("HOME") .. "/.local/share/macos-cursor/load-plugin")
+end)

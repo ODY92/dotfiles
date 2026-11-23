@@ -45,6 +45,7 @@ hl.window_rule({ match = { fullscreen = false }, opacity = vars.windowOpacity ..
 -- Center all floating windows except xwayland windows (xwayland popups count as windows)
 hl.window_rule({ match = { float = true, xwayland = false }, center = true })
 
+
 -- Picture in picture (move and resize done via resizer in execs.lua)
 hl.window_rule({
     match             = { title = "Picture(-| )in(-| )[Pp]icture" },
@@ -135,7 +136,7 @@ tagged_rule(xwl_popup_tag, {
 tagged_rule(system_monitor_tag, { "btop" }, "class")
 tagged_rule(music_player_tag, {
     "feishin|Supersonic|Plexamp",                                  -- Self hosted
-    "Riff",                                                     -- Liner (better spotify)
+    "Riff|liner-rust|com.hkamori.liner",                           -- Liner (better spotify)
     "Cider",                                                       -- Apple music
     "com.github.th-ch.youtube-music|com-maxrave-simpmusic-MainKt", -- YouTube music
 }, "class")
@@ -227,5 +228,15 @@ hl.window_rule({
     no_dim = true,
     rounding = 0,
     border_size = 0,
+    opacity = "1.0 override 1.0 override 1.0 override",
+})
+
+-- Kino video player: always 100% opaque (no window opacity / glass blur)
+hl.window_rule({
+    match = { class = "^dev\\.kino\\.Player$" },
+    tag = "+hyprglass_disabled",
+    opaque = true,
+    no_blur = true,
+    no_dim = true,
     opacity = "1.0 override 1.0 override 1.0 override",
 })

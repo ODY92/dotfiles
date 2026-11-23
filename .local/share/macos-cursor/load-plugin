@@ -1,0 +1,26 @@
+#!/usr/bin/env python3
+"""Load the cursor plugin only into the Hyprland ABI it was built for."""
+import json
+from pathlib import Path
+import subprocess
+import sys
+
+base = Path(__file__).resolve().parent
+expected = (base / "plugin-abi").read_text().strip()
+version = json.loads(subprocess.check_output(["hyprctl", "version", "-j"]))
+if version.get("abiHash") != expected:
+    print("macOS cursor: rebuild dynamic-cursors for this Hyprland version.", file=sys.stderr)
+    sys.exit(0)
+loaded = json.loads(subprocess.check_output(["hyprctl", "-j", "plugin", "list"]))
+if not any(plugin["name"] == "dynamic-cursors" for plugin in loaded):
+    result = subprocess.run(
+        ["hyprctl", "plugin", "load", str(base / "dynamic-cursors.so")],
+        capture_output=True, text=True,
+    )
+    if result.returncode or "ok" not in result.stdout.lower():
+        print(result.stdout + result.stderr, file=sys.stderr)
+        sys.exit(1)
+subprocess.run([
+    "hyprctl", "eval",
+    'dofile(os.getenv("HOME") .. "/.config/hypr/tahoe-cursor.lua")',
+], check=True)

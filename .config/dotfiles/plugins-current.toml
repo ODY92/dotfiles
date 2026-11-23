@@ -1,7 +1,14 @@
-[hyprglass]
-repository = "https://github.com/hyprnux/hyprglass"
-revision = "14df05f8bfcc0c5df9f66e5fbc6d71bb2a7c0475"
-
 [hypr3d]
 repository = "https://github.com/samine825/Hypr3D"
-revision = "9301dcf6d0625daf632d5be04f2a3cefabec1769"
+revision = "1e9559cc039947fa632477dcea11e10f823a5ccc"
+enabled = true
+
+[hyprglass]
+repository = "https://github.com/hyprnux/hyprglass"
+revision = "c65931aa81827f5f21a88e4d8a1087a03f689f2d"
+enabled = false
+
+[dynamic_cursors]
+repository = "https://github.com/VirtCode/hypr-dynamic-cursors"
+revision = "2a8d0b735328d874a78ca93b2f201649f712a74a"
+enabled = true

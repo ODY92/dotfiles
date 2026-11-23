@@ -5,6 +5,7 @@ hl.monitor({
   mode = "3440x1440@165.00",
   position = "-840x0",
   scale = 1,
+  bitdepth = 10,
   vrr = 0,
   sdrsaturation = 1.15,
   sdr_min_luminance = 0.2,

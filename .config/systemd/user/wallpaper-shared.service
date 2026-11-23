@@ -1,0 +1,17 @@
+[Unit]
+Description=Fond d'ecran commun a MacShell et Caelestia
+PartOf=graphical-session.target
+After=graphical-session.target
+StartLimitIntervalSec=60
+StartLimitBurst=5
+
+[Service]
+Type=simple
+Environment=XDG_SESSION_TYPE=wayland
+ExecStart=%h/.local/bin/wallpaper-shared run
+Restart=on-failure
+RestartSec=3
+TimeoutStopSec=8
+
+[Install]
+WantedBy=graphical-session.target

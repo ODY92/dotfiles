@@ -1,0 +1,455 @@
+diff --git a/Makefile b/Makefile
+index 1939925..ae1114b 100644
+--- a/Makefile
++++ b/Makefile
+@@ -1,10 +1,11 @@
+ PLUGIN_NAME=dynamic-cursors
++.DEFAULT_GOAL := all
+ 
+ SOURCE_FILES := $(wildcard ./src/*.cpp ./src/*/*.cpp ./src/*/*/*.cpp)
+ HEADER_FILES := $(wildcard ./src/*.hpp ./src/*/*.hpp ./src/*/*/*.hpp)
+ 
+ OBJECT_FILES := $(patsubst ./src/%.cpp, out/%.o, $(SOURCE_FILES))
+-CXXFLAGS := -Wall -fPIC -std=c++26 -g \
++CXXFLAGS := -Wall -fPIC -std=c++26 -g -MMD -MP \
+ 	$(shell pkg-config --cflags hyprland pixman-1 libdrm | sed 's#-I\([^ ]*/hyprland\)\($$\| \)#-I\1 -I\1/src #g')
+ 
+ OUTPUT=out/$(PLUGIN_NAME).so
+@@ -15,6 +16,8 @@ endif
+ 
+ .PHONY: all clean load unload format
+ 
++-include $(OBJECT_FILES:.o=.d)
++
+ all: $(OUTPUT)
+ 
+ $(OUTPUT): $(OBJECT_FILES)
+@@ -26,7 +29,7 @@ out/%.o: ./src/%.cpp
+ 	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(EXTRA_CXXFLAGS) -c $< -o $@
+ 
+ clean:
+-	$(RM) $(OUTPUT) $(OBJECT_FILES)
++	$(RM) $(OUTPUT) $(OBJECT_FILES) $(OBJECT_FILES:.o=.d)
+ 
+ format:
+ 	clang-format -i $(HEADER_FILES) $(SOURCE_FILES)
+diff --git a/src/config/ConfigManager.cpp b/src/config/ConfigManager.cpp
+index c28675e..135c675 100644
+--- a/src/config/ConfigManager.cpp
++++ b/src/config/ConfigManager.cpp
+@@ -29,7 +29,14 @@ CConfigHandler::CConfigHandler() {
+     // clang-format off
+     c_enabled         = conf(NS("enabled"),                true,                   "global toggle for the plugin");
+     c_mode            = prop(NS("mode"),                   "tilt",                 "sets the cursor behaviour (tilt, rotate, stretch, none)", {{"tilt", MODE_TILT}, {"rotate", MODE_ROTATE}, {"stretch", MODE_STRETCH}, {"none", MODE_NONE}});
+-    c_threshold       = conf(NS("threshold"),              2,                      "minimum angle difference in degrees after which the shape is changed");
++    c_threshold       = conf(NS("threshold"),              0.15f,                  "minimum angle difference in degrees after which the shape is changed");
++
++    c_clickEnabled       = conf(NS("immersive:click_enabled"), true, "animate cursor compression on primary clicks");
++    c_clickScale         = conf(NS("immersive:click_scale"), 0.90f, "cursor scale while the primary button is pressed");
++    c_motionBlurEnabled  = conf(NS("immersive:blur_enabled"), true, "directional cursor motion blur");
++    c_motionBlurStrength = conf(NS("immersive:blur_strength"), 0.45f, "strength of directional motion blur");
++    c_motionBlurShutter  = conf(NS("immersive:blur_shutter"), 0.008f, "motion blur exposure in seconds");
++    c_motionBlurLimit    = conf(NS("immersive:blur_limit"), 14.0f, "maximum blur length in logical pixels");
+ 
+     c_shakeEnabled    = conf(NS("shake:enabled"),          true,                   "enables shake to find");
+     c_shakeEffects    = conf(NS("shake:effects"),          false,                  "show cursor behaviour while shaking");
+@@ -92,6 +99,25 @@ CConfigHandler::CConfigHandler() {
+ 
+     // add magnify dispatcher
+     HyprlandAPI::addLuaFunction(PHANDLE, "dynamic_cursors", "dsp_magnify", ::luaMagnifyDispatcher);
++    HyprlandAPI::addLuaFunction(PHANDLE, "dynamic_cursors", "preview_click", [](lua_State*) -> int {
++        if (g_pDynamicCursors)
++            g_pDynamicCursors->previewClick();
++        return 0;
++    });
++    HyprlandAPI::addLuaFunction(PHANDLE, "dynamic_cursors", "immersive_state", [](lua_State* L) -> int {
++        lua_newtable(L);
++        if (!g_pDynamicCursors)
++            return 1;
++        auto number = [L](const char* key, double value) {
++            lua_pushnumber(L, value);
++            lua_setfield(L, -2, key);
++        };
++        number("click_scale", g_pDynamicCursors->clickScale());
++        number("click_count", g_pDynamicCursors->clickCount());
++        number("rotation", g_pDynamicCursors->rotation());
++        number("blur_length", g_pDynamicCursors->blurLength());
++        return 1;
++    });
+ }
+ 
+ bool CConfigHandler::isEnabled() {
+diff --git a/src/config/ConfigManager.hpp b/src/config/ConfigManager.hpp
+index 8a2cdf0..5278625 100644
+--- a/src/config/ConfigManager.hpp
++++ b/src/config/ConfigManager.hpp
+@@ -25,7 +25,14 @@ class CConfigHandler {
+   public:
+     SP<CBoolValue>   c_enabled;
+     SP<CVariantProp> c_mode;
+-    SP<CIntValue>    c_threshold;
++    SP<CFloatValue>  c_threshold;
++
++    SP<CBoolValue>  c_clickEnabled;
++    SP<CFloatValue> c_clickScale;
++    SP<CBoolValue>  c_motionBlurEnabled;
++    SP<CFloatValue> c_motionBlurStrength;
++    SP<CFloatValue> c_motionBlurShutter;
++    SP<CFloatValue> c_motionBlurLimit;
+ 
+     SP<CBoolValue>  c_shakeEnabled;
+     SP<CBoolValue>  c_shakeEffects;
+diff --git a/src/cursor.cpp b/src/cursor.cpp
+index 5d21ab1..4be1949 100644
+--- a/src/cursor.cpp
++++ b/src/cursor.cpp
+@@ -17,6 +17,8 @@
+ #include <hyprland/src/debug/log/Logger.hpp>
+ #include <hyprland/src/helpers/math/Math.hpp>
+ #include <hyprutils/utils/ScopeGuard.hpp>
++#include <hyprland/src/event/EventBus.hpp>
++#include <linux/input-event-codes.h>
+ #include <cmath>
+ #include <cstdlib>
+ #include <climits>
+@@ -33,16 +35,28 @@ void tickRaw(SP<CEventLoopTimer> self, void* data) {
+     if (g_pConfigHandler->isEnabled())
+         g_pDynamicCursors->onTick(Pointer::mgr().get());
+ 
+-    const int TIMEOUT = g_pHyprRenderer->m_mostHzMonitor && g_pHyprRenderer->m_mostHzMonitor->m_refreshRate > 0 ? 1000.0 / g_pHyprRenderer->m_mostHzMonitor->m_refreshRate : 16;
+-    self->updateTimeout(std::chrono::milliseconds(TIMEOUT));
++    const int timeoutUs = g_pHyprRenderer->m_mostHzMonitor && g_pHyprRenderer->m_mostHzMonitor->m_refreshRate > 0 ?
++        std::lround(1000000.0 / g_pHyprRenderer->m_mostHzMonitor->m_refreshRate) : 16667;
++    self->updateTimeout(std::chrono::microseconds(timeoutUs));
+ }
+ 
+ CDynamicCursors::CDynamicCursors() {
+     this->tick = SP<CEventLoopTimer>(new CEventLoopTimer(std::chrono::microseconds(500), tickRaw, nullptr));
+     g_pEventLoopManager->addTimer(this->tick);
++    lastDynamicsPos = Pointer::mgr()->m_pointerPos;
++    buttonListener = Event::bus()->m_events.input.mouse.button.listen([this](IPointer::SButtonEvent event, Event::SCallbackInfo&) {
++        if (event.button != BTN_LEFT)
++            return;
++        primaryPressed = event.state == WL_POINTER_BUTTON_STATE_PRESSED;
++        if (primaryPressed) {
++            ++primaryClicks;
++            previewClick();
++        }
++    });
+ }
+ 
+ CDynamicCursors::~CDynamicCursors() {
++    buttonListener.reset();
+     // stop and deallocate timer
+     g_pEventLoopManager->removeTimer(this->tick);
+     this->tick.reset();
+@@ -90,12 +104,12 @@ void CDynamicCursors::renderSoftware(Pointer::CPointerManager* pointers, Render:
+     auto texture = pointers->getCurrentCursorTexture();
+     bool nearest = false;
+ 
+-    if (zoom > 1) {
++    if (std::abs(zoom - 1.0) > 0.0001) {
+         // this first has to undo the hotspot transform from getCursorBoxGlobal
+         box.x += pointers->m_currentCursorImage.hotspot.x;
+         box.y += pointers->m_currentCursorImage.hotspot.y;
+ 
+-        auto high = highres.getTexture();
++        auto high = zoom > 1 ? highres.getTexture() : nullptr;
+ 
+         if (high) {
+             texture  = high;
+@@ -140,6 +154,8 @@ void CDynamicCursors::renderSoftware(Pointer::CPointerManager* pointers, Render:
+     data.nearest          = nearest;
+     data.stretchAngle     = resultShown.stretch.angle;
+     data.stretchMagnitude = resultShown.stretch.magnitude;
++    data.blurDelta        = shownBlur * pMonitor->m_scale;
++    data.blurStrength     = CONFIG(motionBlurEnabled) ? CONFIG(motionBlurStrength) : 0.0f;
+ 
+     g_pHyprRenderer->addPassElement(ctx, makeUnique<CCursorPassElement>(std::move(data)));
+ 
+@@ -189,8 +205,8 @@ SP<Aquamarine::IBuffer> CDynamicCursors::renderHardware(Pointer::CPointerManager
+     auto zoom    = resultShown.scale;
+ 
+     auto cursorSize     = pointers->m_currentCursorImage.size * zoom;
+-    int  cursorDiagonal = cursorSize.size();
+-    auto cursorPadding  = Vector2D{cursorDiagonal, cursorDiagonal};
++    const double baseDiagonal = static_cast<int>(pointers->m_currentCursorImage.size.size());
++    auto cursorPadding  = Vector2D{baseDiagonal, baseDiagonal} * zoom;
+     auto targetSize     = cursorSize + cursorPadding * 2;
+ 
+     if (maxSize == Vector2D{})
+@@ -282,7 +298,8 @@ SP<Aquamarine::IBuffer> CDynamicCursors::renderHardware(Pointer::CPointerManager
+     Mat3x3 transform = toTransform(xbox, resultShown.rotation, Pointer::mgr()->m_currentCursorImage.hotspot * state->monitor->m_scale * zoom, resultShown.stretch.angle,
+                                    resultShown.stretch.magnitude);
+ 
+-    drawCursor(ctx, transform, texture, xbox, damageRegion, zoom > 1 && CONFIG(highresNearest));
++    drawCursor(ctx, transform, texture, xbox, damageRegion, zoom > 1 && CONFIG(highresNearest) == 2,
++               shownBlur * state->monitor->m_scale, CONFIG(motionBlurEnabled) ? CONFIG(motionBlurStrength) : 0.0f);
+ 
+     g_pHyprRenderer->endRender();
+ 
+@@ -414,6 +431,31 @@ IMode* CDynamicCursors::currentMode() {
+ 
+ void CDynamicCursors::calculate(EModeUpdate type) {
+ 
++    Vector2D nextBlur = shownBlur;
++    if (type == TICK) {
++        const auto now = std::chrono::steady_clock::now();
++        const double elapsed = lastDynamicsTick.time_since_epoch().count() == 0 ? 1.0 / 165.0 :
++            std::chrono::duration<double>(now - lastDynamicsTick).count();
++        const double dt = std::clamp(elapsed, 0.001, 0.04);
++        const auto pos = Pointer::mgr()->m_pointerPos;
++        const auto delta = pos - lastDynamicsPos;
++        // Discontinuous focus warps should not leave a streak across the desktop.
++        const auto velocity = delta.size() < 300 && elapsed < 0.1 ? delta / dt : Vector2D{};
++        const double blend = 1.0 - std::exp(-dt / 0.010);
++        filteredVelocity = filteredVelocity * (1.0 - blend) + velocity * blend;
++        lastDynamicsPos = pos;
++        lastDynamicsTick = now;
++        nextBlur = CONFIG(motionBlurEnabled) ? filteredVelocity * std::clamp(static_cast<double>(CONFIG(motionBlurShutter)), 0.0, 0.020) : Vector2D{};
++        const double limit = std::clamp(static_cast<double>(CONFIG(motionBlurLimit)), 0.0, 20.0);
++        if (nextBlur.size() > limit && nextBlur.size() > 0)
++            nextBlur *= limit / nextBlur.size();
++        if (nextBlur.size() < 0.15)
++            nextBlur = {};
++
++        const bool compress = CONFIG(clickEnabled) && (primaryPressed || now < clickUntil);
++        clickSpring.step(compress ? std::clamp(static_cast<double>(CONFIG(clickScale)), 0.75, 1.0) : 1.0, dt, 1000.0, 47.0);
++    }
++
+     IMode* mode = currentMode();
+ 
+     // calculate angle and zoom
+@@ -441,10 +483,15 @@ void CDynamicCursors::calculate(EModeUpdate type) {
+ 
+     auto result = resultMode;
+     result.scale *= resultShake;
++    result.scale *= clickSpring.value;
+ 
+-    if (resultShown.hasDifference(&result, CONFIG(threshold) * (std::numbers::pi / 180.0), 0.01, 0.01)) {
++    const bool blurChanged = (nextBlur - shownBlur).size() > 0.10 || (nextBlur == Vector2D{} && shownBlur != Vector2D{});
++    if (blurChanged || resultShown.hasDifference(&result, CONFIG(threshold) * (std::numbers::pi / 180.0), 0.0005, 0.001)) {
++        // Clear the previous footprint before changing scale, rotation or exposure.
++        Pointer::mgr()->damageIfSoftware();
++        shownBlur = nextBlur;
+         resultShown = result;
+-        resultShown.clamp(CONFIG(threshold) * (std::numbers::pi / 180.0), 0.01, 0.01); // clamp low values so it is rendered pixel-perfectly when no effect
++        resultShown.clamp(CONFIG(threshold) * (std::numbers::pi / 180.0), 0.0005, 0.001);
+ 
+         // lock software cursors if zooming
+         if (resultShown.scale > 1) {
+@@ -498,3 +545,7 @@ void CDynamicCursors::dispatchMagnify(std::optional<int> duration, std::optional
+ 
+     shake.force(duration, size);
+ }
++
++void CDynamicCursors::previewClick() {
++    clickUntil = std::chrono::steady_clock::now() + std::chrono::milliseconds(90);
++}
+diff --git a/src/cursor.hpp b/src/cursor.hpp
+index ca19a85..ff48cbb 100644
+--- a/src/cursor.hpp
++++ b/src/cursor.hpp
+@@ -13,6 +13,7 @@
+ #include "mode/ModeStretch.hpp"
+ #include "other/Shake.hpp"
+ #include "highres.hpp"
++#include "other/Immersive.hpp"
+ 
+ class CDynamicCursors {
+   public:
+@@ -45,6 +46,11 @@ class CDynamicCursors {
+     void setMove();
+ 
+     void dispatchMagnify(std::optional<int> duration, std::optional<float> size);
++    void previewClick();
++    double clickScale() const { return clickSpring.value; }
++    unsigned int clickCount() const { return primaryClicks; }
++    double rotation() const { return resultShown.rotation; }
++    double blurLength() const { return shownBlur.size(); }
+ 
+   private:
+     SP<CEventLoopTimer> tick;
+@@ -54,7 +60,7 @@ class CDynamicCursors {
+ 
+     // current state of the cursor
+     SModeResult resultMode;
+-    double      resultShake;
++    double      resultShake = 1.0;
+     Vector2D    lastPos; // used for warp compensation
+ 
+     SModeResult resultShown;
+@@ -69,7 +75,17 @@ class CDynamicCursors {
+ 
+     /* returns the current mode, nullptr if none is selected */
+     IMode* currentMode();
+-    IMode* lastMode; // used to reset the mode if it was switched (to prune stale data)
++    IMode* lastMode = nullptr; // used to reset the mode if it was switched (to prune stale data)
++
++    CHyprSignalListener buttonListener;
++    SCursorSpring clickSpring;
++    bool primaryPressed = false;
++    unsigned int primaryClicks = 0;
++    std::chrono::steady_clock::time_point clickUntil{};
++    std::chrono::steady_clock::time_point lastDynamicsTick{};
++    Vector2D lastDynamicsPos;
++    Vector2D filteredVelocity;
++    Vector2D shownBlur;
+ 
+     // shake
+     CShake shake;
+diff --git a/src/main.cpp b/src/main.cpp
+index 22e1191..871736e 100644
+--- a/src/main.cpp
++++ b/src/main.cpp
+@@ -210,11 +210,8 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
+             "_ZN7Pointer15CPointerManager13onCursorMovedEv",
+             (void*) &hkOnCursorMoved
+         );
+-        g_pMoveHook = hook(
+-            pmf_address(&Pointer::CPointerManager::move),
+-            "_ZN7Pointer15CPointerManager4moveERKN9Hyprutils4Math8Vector2DE",
+-            (void*) &hkMove
+-        );
++        // The local compositor cannot hook move() alongside the existing plugins.
++        // Use onCursorMoved() for shake detection and configure ignore_warps=false.
+ 
+         g_pSetCursorFromNameHook = hook(
+             pmf_address(&Pointer::Cursor::CCursorManager::setCursorFromName),
+@@ -235,7 +232,7 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
+     } catch (std::exception& e) {
+         LOG(Log::ERR, "[dynamic-cursors] failed to hook, {}", e.what());
+         HyprlandAPI::addNotification(PHANDLE, std::format("[dynamic-cursors] cannot load, {}", e.what()), CHyprColor{1.0, 0.2, 0.2, 1.0}, 5000);
+-        throw e;
++        throw;
+     } catch (...) {
+         LOG(Log::ERR, "[dynamic-cursors] failed to hook for unknown reason");
+         HyprlandAPI::addNotification(PHANDLE, "[dynamic-cursors] cannot load, unknown error with hooks!", CHyprColor{1.0, 0.2, 0.2, 1.0}, 5000);
+diff --git a/src/mode/ModeTilt.cpp b/src/mode/ModeTilt.cpp
+index 53c3824..0e488eb 100644
+--- a/src/mode/ModeTilt.cpp
++++ b/src/mode/ModeTilt.cpp
+@@ -31,7 +31,13 @@ SModeResult CModeTilt::update(Vector2D pos) {
+     double speed = (samples[current].x - samples[first].x) / window * 1000;
+ 
+     auto result     = SModeResult();
+-    result.rotation = activation(function, limit, speed) * (std::numbers::pi / (180.0 / full_tilt));
++    const auto now = std::chrono::steady_clock::now();
++    const double dt = lastUpdate.time_since_epoch().count() == 0 ? 1.0 / 165.0 :
++        std::chrono::duration<double>(now - lastUpdate).count();
++    lastUpdate = now;
++    const double target = activation(function, limit, speed) * (std::numbers::pi / (180.0 / full_tilt));
++    spring.step(target, dt, 420.0, 29.0);
++    result.rotation = spring.value;
+     return result;
+ }
+ 
+@@ -45,4 +51,6 @@ void CModeTilt::warp(Vector2D old, Vector2D pos) {
+ void CModeTilt::reset() {
+     samples.clear();
+     samples_index = 0;
++    spring = {0.0, 0.0};
++    lastUpdate = {};
+ }
+diff --git a/src/mode/ModeTilt.hpp b/src/mode/ModeTilt.hpp
+index 4c7f83c..d285b76 100644
+--- a/src/mode/ModeTilt.hpp
++++ b/src/mode/ModeTilt.hpp
+@@ -2,6 +2,8 @@
+ 
+ #include <hyprutils/math/Vector2D.hpp>
+ #include <vector>
++#include <chrono>
++#include "../other/Immersive.hpp"
+ 
+ class CModeTilt : public IMode {
+   public:
+@@ -14,4 +16,6 @@ class CModeTilt : public IMode {
+     // ring buffer of last position samples
+     std::vector<Vector2D> samples;
+     int                   samples_index = 0;
++    SCursorSpring         spring{0.0, 0.0};
++    std::chrono::steady_clock::time_point lastUpdate{};
+ };
+diff --git a/src/render/CursorPassElement.cpp b/src/render/CursorPassElement.cpp
+index 2271858..1ff46d5 100644
+--- a/src/render/CursorPassElement.cpp
++++ b/src/render/CursorPassElement.cpp
+@@ -13,7 +13,7 @@ std::vector<UP<IPassElement>> CCursorPassElement::draw(Render::CRenderContext& c
+     Mat3x3 transform = toTransform(m_data.box, m_data.box.rot, m_data.hotspot, m_data.stretchAngle, m_data.stretchMagnitude);
+     m_data.box.rot   = 0;
+ 
+-    drawCursor(ctx, transform, m_data.tex, m_data.box, ctx.m_data.damage, m_data.nearest);
++    drawCursor(ctx, transform, m_data.tex, m_data.box, ctx.m_data.damage, m_data.nearest, m_data.blurDelta, m_data.blurStrength);
+ 
+     return {}; // no passes to be submitted later
+ }
+@@ -27,7 +27,9 @@ bool CCursorPassElement::needsPrecomputeBlur(Render::CRenderContext& ctx) {
+ }
+ 
+ std::optional<CBox> CCursorPassElement::boundingBox(Render::CRenderContext& ctx) {
+-    return m_data.box.copy().scale(1.F / ctx.m_data.pMonitor->m_scale).round();
++    const double padding = m_data.box.size().size() + m_data.blurDelta.size();
++    return CBox{m_data.box.x - padding, m_data.box.y - padding, m_data.box.w + 2 * padding, m_data.box.h + 2 * padding}
++        .scale(1.F / ctx.m_data.pMonitor->m_scale).round();
+ }
+ 
+ CRegion CCursorPassElement::opaqueRegion(Render::CRenderContext& ctx) {
+diff --git a/src/render/CursorPassElement.hpp b/src/render/CursorPassElement.hpp
+index f2430ab..8dafe22 100644
+--- a/src/render/CursorPassElement.hpp
++++ b/src/render/CursorPassElement.hpp
+@@ -15,6 +15,8 @@ class CCursorPassElement : public IPassElement {
+         bool     nearest;
+         double   stretchAngle;
+         Vector2D stretchMagnitude;
++        Vector2D blurDelta;
++        float blurStrength = 0.0f;
+     };
+ 
+     CCursorPassElement(const SRenderData& data);
+diff --git a/src/render/renderer.cpp b/src/render/renderer.cpp
+index 3d80ce5..6df77de 100644
+--- a/src/render/renderer.cpp
++++ b/src/render/renderer.cpp
+@@ -30,13 +30,27 @@ Mat3x3 toTransform(CBox& box, float rotation, Vector2D hotspot, float stretchAng
+     return mat;
+ }
+ 
+-void drawCursor(Render::CRenderContext& ctx, const Mat3x3& transform, SP<Render::ITexture> tex, CBox box, CRegion damage, bool nearest) {
++void drawCursor(Render::CRenderContext& ctx, const Mat3x3& transform, SP<Render::ITexture> tex, CBox box, CRegion damage, bool nearest,
++                Vector2D blurDelta, float blurStrength) {
+     Mat3x3 proj = ctx.m_data.targetProjection.copy().multiply(transform);
+ 
+     std::swap(ctx.m_data.targetProjection, proj);
+     ctx.m_data.useNearestNeighbor = nearest;
+ 
+-    g_pHyprRenderer->draw(ctx, CTexPassElement::SRenderData{.tex = tex, .box = box}, damage);
++    // Short, overlapping exposure samples soften fast motion, with a crisp leading tip.
++    // This works in the hardware cursor buffer as well as software rendering.
++    float exposure = std::clamp(blurStrength, 0.0f, 0.7f) * std::clamp(static_cast<float>(blurDelta.size() / 4.0), 0.0f, 1.0f);
++    if (blurDelta.size() > 0.15 && exposure > 0.001f) {
++        const int samples = 16;
++        for (int i = samples; i >= 1; --i) {
++            const float t = static_cast<float>(i) / samples;
++            auto sample = box.copy().translate(-blurDelta * t);
++            const float alpha = exposure * (2.0f - t) / (samples * 1.5f);
++            g_pHyprRenderer->draw(ctx, CTexPassElement::SRenderData{.tex = tex, .box = sample, .a = alpha}, damage);
++        }
++    } else
++        exposure = 0.0f;
++    g_pHyprRenderer->draw(ctx, CTexPassElement::SRenderData{.tex = tex, .box = box, .a = 1.0f - exposure * 0.35f}, damage);
+ 
+     std::swap(ctx.m_data.targetProjection, proj);
+     ctx.m_data.useNearestNeighbor = false;
+diff --git a/src/render/renderer.hpp b/src/render/renderer.hpp
+index ef6a5d8..5a1b70a 100644
+--- a/src/render/renderer.hpp
++++ b/src/render/renderer.hpp
+@@ -13,4 +13,5 @@ Mat3x3 toTransform(CBox& box, float rotation, Vector2D hotspot, float stretchAng
+  * dispatches a draw call using the current hyprland renderer to draw the cursor with the provided transform
+  * will modify the monitor transform and do a tex pass immediately
+  */
+-void drawCursor(Render::CRenderContext& ctx, const Mat3x3& transform, SP<Render::ITexture> tex, CBox box, CRegion damage, bool nearest);
++void drawCursor(Render::CRenderContext& ctx, const Mat3x3& transform, SP<Render::ITexture> tex, CBox box, CRegion damage, bool nearest,
++                Vector2D blurDelta = {}, float blurStrength = 0.0f);

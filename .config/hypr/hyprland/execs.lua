@@ -27,6 +27,7 @@ hl.on("hyprland.start", function()
 
     -- Start shell
     hl.exec_cmd("caelestia shell -d")
+    hl.exec_cmd("qs -c dynamic-island -n -d")
 end)
 
 -- Resizer listeners

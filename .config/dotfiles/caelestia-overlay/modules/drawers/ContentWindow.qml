@@ -119,6 +119,8 @@ StyledWindow {
                 return true;
             if (!conf.dashboard.showOnHover && s.dashboard && conf.dashboard.enabled)
                 return true;
+            if (panels.popouts.hasCurrent && panels.popouts.clickOpened)
+                return true;
             if (panels.popouts.currentName.startsWith("traymenu") && (panels.popouts.current as StackView)?.depth > 1)
                 return true;
             return false;
@@ -129,7 +131,7 @@ StyledWindow {
             root.screenState.session = false;
             root.screenState.sidebar = false;
             root.screenState.dashboard = false;
-            panels.popouts.hasCurrent = false;
+            panels.popouts.close();
             bar.closeTray();
         }
     }
@@ -179,6 +181,7 @@ StyledWindow {
 
             panel: panels.dashboard
             deformAmount: 0.1
+            y: panel.y + bar.insetT * (1 - panels.dashboard.offsetScale)
         }
 
         PanelBg {
@@ -186,15 +189,17 @@ StyledWindow {
 
             panel: panels.launcher
             deformAmount: 0.1
+            y: panel.y + bar.insetT + bar.insetB * panels.launcher.offsetScale
         }
 
         PanelBg {
             id: sessionBg
 
             panel: panels.sessionWrapper
+            activePanel: panels.session.visible
             deformAmount: 0.2
-            x: panels.sessionWrapper.x + panels.session.x + bar.insetL
-            implicitWidth: panels.session.width
+            x: panels.sessionWrapper.x + panels.session.x + bar.insetL + bar.insetR * panels.session.offsetScale
+            implicitWidth: activePanel ? panels.session.width : 0
         }
 
         PanelBg {
@@ -202,7 +207,8 @@ StyledWindow {
 
             panel: panels.sidebar
             deformAmount: 0.03
-            implicitHeight: panel.height * (1 / rawDeformMatrix.m22) + 2
+            x: panel.x + bar.insetL + bar.insetR * panels.sidebar.offsetScale
+            implicitHeight: activePanel ? panel.height * (1 / rawDeformMatrix.m22) + 2 : 0
             exclude: panels.sidebar.offsetScale > 0.08 ? [] : [utilsBg]
             bottomLeftRadius: Math.max(0, Math.min(1, panels.sidebar.offsetScale / 0.3)) * radius
         }
@@ -211,9 +217,10 @@ StyledWindow {
             id: osdBg
 
             panel: panels.osdWrapper
+            activePanel: panels.osd.visible
             deformAmount: 0.25
-            x: panels.osdWrapper.x + panels.osd.x + bar.insetL
-            implicitWidth: panels.osd.width
+            x: panels.osdWrapper.x + panels.osd.x + bar.insetL + bar.insetR * panels.osd.offsetScale
+            implicitWidth: activePanel ? panels.osd.width : 0
         }
 
         PanelBg {
@@ -227,6 +234,7 @@ StyledWindow {
 
             panel: panels.utilities
             deformAmount: panels.sidebar.visible ? 0.1 : 0.15
+            y: panel.y + bar.insetT + bar.insetB * panels.utilities.offsetScale
             exclude: panels.sidebar.offsetScale > 0.08 ? [] : [sidebarBg]
             topLeftRadius: Math.max(0, Math.min(1, panels.sidebar.offsetScale / 0.3)) * radius
         }
@@ -240,7 +248,7 @@ StyledWindow {
             panel: panels.popoutsWrapper
             deformAmount: panels.popouts.isDetached ? 0.05 : panels.popouts.hasCurrent ? 0.15 : 0.1
             x: BarPos.position === "left" ? panels.popoutsWrapper.x + panels.popouts.x + bar.insetL - panels.popouts.width * extraWidth : panels.popoutsWrapper.x + bar.insetL
-            implicitWidth: BarPos.position === "left" ? panels.popouts.width * (1 + extraWidth) : panels.popoutsWrapper.width
+            implicitWidth: activePanel ? (BarPos.position === "left" ? panels.popouts.width * (1 + extraWidth) : panels.popoutsWrapper.width) : 0
 
             Behavior on extraWidth {
                 Anim {}
@@ -338,13 +346,15 @@ StyledWindow {
 
     component PanelBg: BlobRect {
         required property Item panel
+        property bool activePanel: panel.visible
         property real deformAmount: 0.15
 
+        visible: activePanel
         group: blobGroup
         x: panel.x + bar.insetL
         y: panel.y + bar.insetT
-        implicitWidth: panel.width
-        implicitHeight: panel.height
+        implicitWidth: activePanel ? panel.width : 0
+        implicitHeight: activePanel ? panel.height : 0
         radius: Tokens.rounding.extraLarge
         deformScale: (deformAmount * Config.appearance.deformScale) / 10000
     }

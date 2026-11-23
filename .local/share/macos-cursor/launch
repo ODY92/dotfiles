@@ -1,0 +1,22 @@
+#!/usr/bin/env python3
+"""Start an application with current cursor settings, overriding stale parents."""
+import os
+import subprocess
+import sys
+
+if len(sys.argv) < 2:
+    sys.exit("Usage: launch PROGRAM [ARGUMENTS...]")
+
+try:
+    theme = subprocess.check_output([
+        "gsettings", "get", "org.gnome.desktop.interface", "cursor-theme",
+    ], text=True).strip().strip("'")
+    size = str(int(subprocess.check_output([
+        "gsettings", "get", "org.gnome.desktop.interface", "cursor-size",
+    ], text=True).strip()))
+except (OSError, ValueError, subprocess.CalledProcessError):
+    theme, size = "macOS", "42"
+
+env = os.environ.copy()
+env.update(XCURSOR_THEME=theme, HYPRCURSOR_THEME=theme, XCURSOR_SIZE=size, HYPRCURSOR_SIZE=size)
+os.execvpe(sys.argv[1], sys.argv[1:], env)

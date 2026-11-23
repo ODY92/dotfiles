@@ -38,18 +38,12 @@ Item {
             hoverEnabled: true
             onPositionChanged: {
                 const popouts = root.bar.popouts;
-                if (popouts.hasCurrent && popouts.currentName !== "activewindow")
+                if (popouts.hasCurrent && !popouts.clickOpened && popouts.currentName !== "activewindow")
                     popouts.hasCurrent = false;
             }
             onClicked: {
-                const popouts = root.bar.popouts;
-                if (popouts.hasCurrent) {
-                    popouts.hasCurrent = false;
-                } else {
-                    popouts.currentName = "activewindow";
-                    popouts.currentCenter = root.mapToItem(root.bar, root.implicitWidth / 2, 0).x;
-                    popouts.hasCurrent = true;
-                }
+                const center = root.mapToItem(root.bar, root.implicitWidth / 2, 0).x;
+                root.bar.popouts.toggleClickPopout("activewindow", center);
             }
         }
     }

@@ -1,0 +1,130 @@
+#!/usr/bin/env python3
+"""Fond d'ecran independant de Caelestia et de MacShell."""
+import argparse
+import json
+import os
+from pathlib import Path
+import signal
+import subprocess
+import sys
+import tempfile
+
+HOME = Path.home()
+STATE = HOME / '.local/state/wallpaper-shared/current.json'
+WORKSHOP = HOME / '.local/share/Steam/steamapps/workshop/content/431960'
+SERVICE = 'wallpaper-shared.service'
+
+
+def read_state():
+    data = json.loads(STATE.read_text())
+    source = data['source']
+    if data['mode'] == 'workshop':
+        if not source.isdecimal() or not (WORKSHOP / source / 'project.json').is_file():
+            raise ValueError('Fond Workshop introuvable : ' + source)
+    elif data['mode'] == 'image':
+        if not Path(source).is_file():
+            raise ValueError('Image introuvable : ' + source)
+    else:
+        raise ValueError('Type de fond inconnu')
+    return data
+
+
+def write_state(data):
+    STATE.parent.mkdir(parents=True, exist_ok=True)
+    fd, name = tempfile.mkstemp(dir=STATE.parent, prefix='.current-')
+    try:
+        with os.fdopen(fd, 'w') as output:
+            json.dump(data, output, indent=2)
+            output.write('\n')
+        os.replace(name, STATE)
+    finally:
+        if os.path.exists(name):
+            os.unlink(name)
+
+
+def stop_legacy_engine():
+    # Only this user's old Wallpaper Engine process; other shell processes stay up.
+    for entry in Path('/proc').iterdir():
+        if not entry.name.isdecimal():
+            continue
+        try:
+            if entry.stat().st_uid == os.getuid() and (entry / 'exe').resolve() == Path('/opt/linux-wallpaperengine/linux-wallpaperengine'):
+                os.kill(int(entry.name), signal.SIGTERM)
+        except (OSError, ProcessLookupError):
+            pass
+
+
+def preview(data):
+    if data['mode'] == 'workshop':
+        folder = WORKSHOP / data['source']
+        files = sorted(folder.glob('preview.*'))
+        if not files:
+            return
+        source = files[0]
+        (HOME / '.cache/wp-last').write_text(data['source'] + '\n')
+    else:
+        source = Path(data['source'])
+    target = HOME / '.cache/wp-preview.png'
+    fd, temporary = tempfile.mkstemp(suffix='.png', dir=target.parent)
+    os.close(fd)
+    try:
+        subprocess.run(['ffmpeg', '-y', '-loglevel', 'error', '-i', str(source),
+                        '-frames:v', '1', temporary], check=True, timeout=20)
+        os.replace(temporary, target)
+        # Keep the existing colour scheme and lock-screen preview in sync.
+        subprocess.run(['caelestia', 'wallpaper', '-f', str(target)],
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=20)
+    except (subprocess.SubprocessError, OSError) as error:
+        print('Apercu : ' + str(error), file=sys.stderr)
+    finally:
+        if os.path.exists(temporary):
+            os.unlink(temporary)
+
+
+
+def ensure_service():
+    # Recover from the start limit after the session environment becomes ready.
+    subprocess.run(['systemctl', '--user', 'reset-failed', SERVICE], check=True)
+    subprocess.run(['systemctl', '--user', 'start', SERVICE], check=True)
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('action', choices=('run', 'ensure', 'set-workshop', 'set-image', 'status'))
+    parser.add_argument('source', nargs='?')
+    args = parser.parse_args()
+    if args.action.startswith('set-'):
+        if not args.source:
+            parser.error('Il manque le fond a appliquer')
+        mode = 'workshop' if args.action == 'set-workshop' else 'image'
+        source = args.source if mode == 'workshop' else str(Path(args.source).expanduser().resolve())
+        if mode == 'workshop' and (not source.isdecimal() or not (WORKSHOP / source / 'project.json').is_file()):
+            parser.error('Identifiant Workshop invalide ou non installe')
+        if mode == 'image' and not Path(source).is_file():
+            parser.error('Image introuvable')
+        data = {'mode': mode, 'source': source, 'monitor': 'DP-2'}
+        subprocess.run(['systemctl', '--user', 'stop', SERVICE], check=True)
+        stop_legacy_engine()
+        write_state(data)
+        preview(data)
+        ensure_service()
+        return
+    data = read_state()
+    if args.action == 'status':
+        print(json.dumps(data, ensure_ascii=False))
+    elif args.action == 'ensure':
+        ensure_service()
+    elif data['mode'] == 'workshop':
+        os.execv('/usr/bin/linux-wallpaperengine', ['linux-wallpaperengine', '--screen-root',
+                 data['monitor'], '--layer', 'background', '--silent', data['source']])
+    else:
+        os.execv('/usr/bin/mpvpaper', ['mpvpaper', '--layer', 'background', '-o',
+                 'no-audio loop-file=inf image-display-duration=inf', data['monitor'], data['source']])
+
+
+if __name__ == '__main__':
+    try:
+        main()
+    except (OSError, ValueError, KeyError, subprocess.SubprocessError) as error:
+        print('Fond d’ecran : ' + str(error), file=sys.stderr)
+        sys.exit(1)

@@ -28,3 +28,4 @@ Exec=/home/ulysse/.local/bin/luma https://addons.mozilla.org/fr/firefox/addon/ub
 [Desktop Action Memory]
 Name=Diagnostiquer la mémoire
 Exec=/home/ulysse/.local/bin/luma about:processes
+MimeType=x-scheme-handler/unknown;x-scheme-handler/about;x-scheme-handler/https;x-scheme-handler/http;text/html;

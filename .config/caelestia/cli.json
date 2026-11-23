@@ -1,11 +1,39 @@
 {
   "toggles": {
     "music": {
-      "spotify": { "enable": false },
+      "spotify": {
+        "enable": false
+      },
       "liner": {
         "enable": true,
-        "match": [{ "class": "liner" }],
-        "command": ["/home/ulysse/Applications/Liner.AppImage", "--ozone-platform=x11"],
+        "match": [
+          {
+            "class": "liner"
+          },
+          {
+            "title": "Liner"
+          }
+        ],
+        "command": [
+          "/home/ulysse/Applications/liner-rust"
+        ],
+        "move": true
+      }
+    },
+    "communication": {
+      "discord": {
+        "enable": false
+      },
+      "yapfast": {
+        "enable": true,
+        "match": [
+          {
+            "class": "io.github.yapfast.Yapfast"
+          }
+        ],
+        "command": [
+          "yapfast"
+        ],
         "move": true
       }
     }

@@ -7,8 +7,6 @@ fi
 
 [ -f /usr/share/cachyos-zsh-config/cachyos-config.zsh ] && source /usr/share/cachyos-zsh-config/cachyos-config.zsh
 
-# SLSsteam: Add wrapper to PATH
-export PATH="$HOME/.local/share/SLSsteam/path:$PATH"
 
 alias yt="ytdl.sh"
 
@@ -21,3 +19,6 @@ alias cheat='cd ~/Linux-CS2-External/build && ./LinuxCS2'
 alias deban='sudo timedatectl set-ntp false && sudo date -s "+8 days"'
 alias normaltime='sudo timedatectl set-ntp true'
 alias thefinals='/home/ulysse/Documents/Codex/2026-10-23/kingfisher-you-re-kingfisher-the-maker-5/outputs/kingfisher-finals/run.sh'
+
+# Added by LM Studio CLI tool (lms)
+export PATH="$PATH:/home/ulysse/.lmstudio/bin"

@@ -10,8 +10,7 @@ end
 if test -d $base/$id
     ~/.local/bin/wp-apply $id
 else
-    pkill -f linux-wallpaperengine
-    caelestia wallpaper -f $f
+    ~/.local/bin/wallpaper-shared set-image "$f"; or exit $status
     ~/.local/bin/wp-rgb &
     disown
 end

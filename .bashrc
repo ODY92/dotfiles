@@ -11,5 +11,6 @@ alias ls='ls --color=auto'
 alias grep='grep --color=auto'
 PS1='[\u@\h \W]\$ '
 
-# SLSsteam: Add wrapper to PATH
-export PATH="$HOME/.local/share/SLSsteam/path:$PATH"
+
+# Added by LM Studio CLI tool (lms)
+export PATH="$PATH:/home/ulysse/.lmstudio/bin"

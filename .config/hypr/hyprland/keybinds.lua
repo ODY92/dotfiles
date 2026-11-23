@@ -62,6 +62,10 @@ create_bind(
 -- Misc
 create_bind("ALT + Space", hl.dsp.exec_cmd("/home/ulysse/.local/bin/spotlight26 --toggle"))
 
+-- Whispy (dictée vocale)
+create_bind("CTRL + Space", hl.dsp.exec_cmd("whispy-client toggle"))
+create_bind("CTRL + SHIFT + Space", hl.dsp.exec_cmd("whispy-client cancel"))
+
 create_bind(vars.kbSession, hl.dsp.global("caelestia:session"))
 create_bind(vars.kbShowSidebar, hl.dsp.global("caelestia:sidebar"))
 create_bind(vars.kbClearNotifs, hl.dsp.global("caelestia:clearNotifs"), locked)
@@ -113,7 +117,7 @@ create_bind(vars.kbWindowGroupCycleNext, hl.dsp.group.next(), repeating)
 create_bind(vars.kbWindowGroupCyclePrev, hl.dsp.group.prev(), repeating)
 create_bind(vars.kbToggleGroup, hl.dsp.group.toggle())
 create_bind(vars.kbUngroup, hl.dsp.window.move({ out_of_group = true }))
-create_bind(vars.kbGroupLockActive, hl.dsp.group.lock_active())
+create_bind(vars.kbGroupLockActive, hl.dsp.group.lock())
 
 -- Window actions
 for _, dir in ipairs({ "left", "right", "up", "down" }) do
@@ -243,4 +247,7 @@ hl.bind("SUPER + G", hl.dsp.exec_cmd("~/.local/bin/clip.sh save"))
 hl.bind("SUPER + colon", hl.dsp.exec_cmd("~/.local/bin/emoji-picker.sh"))
 
 -- Hypr3d
-hl.bind("SUPER + F12", hl.plugin.hypr3d.toggle)
+if hl.plugin.hypr3d then
+    hl.bind("SUPER + F12", hl.plugin.hypr3d.toggle)
+end
+

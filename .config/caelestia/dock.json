@@ -1,0 +1,12 @@
+{
+    "enabled": true,
+    "pins": [
+        "luma",
+        "thunar",
+        "kitty",
+        "codium",
+        "io.github.yapfast.Yapfast",
+        "steam",
+        "chatgpt"
+    ]
+}

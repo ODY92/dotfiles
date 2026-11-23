@@ -22,6 +22,9 @@ RowLayout {
     }
 
     function checkPopout(px: real): void {
+        if (popouts.clickOpened)
+            return;
+
         const ch = childAt(px, height / 2) as EntryWrapper;
 
         if (!ch) {
@@ -84,7 +87,17 @@ RowLayout {
         id: repeater
 
         model: ScriptModel {
-            values: root.Config.bar.entries.elements.filter(e => e.enabled)
+            values: {
+                const list = [];
+                for (const e of root.Config.bar.entries.elements) {
+                    if (!e.enabled)
+                        continue;
+                    if (e.id === "statusIcons" && Peripherals.hasAny)
+                        list.push({ id: "peripherals", enabled: true });
+                    list.push(e);
+                }
+                return list;
+            }
         }
 
         DelegateChooser {
@@ -128,6 +141,7 @@ RowLayout {
                 delegate: EntryWrapper {
                     HTray {
                         objectName: "taskbarTray"
+                        bar: root
                     }
                 }
             }
@@ -136,6 +150,16 @@ RowLayout {
                 delegate: EntryWrapper {
                     HClock {
                         objectName: "taskbarClock"
+                        bar: root
+                    }
+                }
+            }
+            DelegateChoice {
+                roleValue: "peripherals"
+                delegate: EntryWrapper {
+                    HPeripherals {
+                        objectName: "taskbarPeripherals"
+                        bar: root
                     }
                 }
             }
@@ -144,6 +168,7 @@ RowLayout {
                 delegate: EntryWrapper {
                     HStatus {
                         objectName: "taskbarStatusIcons"
+                        bar: root
                     }
                 }
             }

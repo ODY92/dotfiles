@@ -1,13 +1,17 @@
 ai.storyteller.artcraft-launcher
+ai.storyteller.craft-anything
 ai.storyteller.deckcraft
 ai.storyteller.pdfcraft
 ai.storyteller.wordcraft
 app.authpass.AuthPass
+com.anydesk.Anydesk
 com.bambulab.BambuStudio
 com.easyeda.EasyEDAPro
 com.github.KRTirtho.Spotube
 com.github.unrud.VideoDownloader
+com.stremio.Stremio
 com.usebottles.bottles
+cz.viceverse.serein
 gg.dawn.Launcher
 net.brinkervii.grapejuice
 net.lutris.Lutris

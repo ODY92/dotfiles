@@ -139,6 +139,7 @@ if hl.plugin.hyprglass then
         edge_thickness = 0.045,
     })
     hg.layer("spotlight26", { preset = "spotlight-clear", mask_mode = "contour", mask_threshold = 0.1, mask_feather = 0.03 })
+    hg.layer("caelestia-desktop-menu", { preset = "spotlight-clear", mask_mode = "contour", mask_threshold = 0.1, mask_feather = 0.03 })
 end
 
 
@@ -150,9 +151,33 @@ hl.layer_rule({
 })
 
 hl.layer_rule({
+    match = { namespace = "caelestia-desktop-menu" },
+    name = "caelestia-desktop-menu-glass",
+    blur = true,
+    ignore_alpha = 0.12,
+    no_anim = true,
+})
+
+hl.layer_rule({
     match = { namespace = "spotlight26" },
     name = "spotlight26-glass",
     blur = true,
     ignore_alpha = 0.1,
     no_anim = true,
+})
+
+dofile(os.getenv("HOME") .. "/.config/hypr/tahoe-dock.lua")
+
+hl.window_rule({
+    match = {
+        class = "^(linusware.*)$",
+    },
+    no_blur = true,
+})
+
+hl.window_rule({
+    match = {
+        title = "^(linusware_overlay)$",
+    },
+    no_blur = true,
 })

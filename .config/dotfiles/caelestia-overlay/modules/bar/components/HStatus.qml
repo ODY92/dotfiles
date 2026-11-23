@@ -12,6 +12,7 @@ import qs.modules.bar.components.status
 StyledRect {
     id: root
 
+    property var bar: null
     property color colour: Colours.palette.m3secondary
     readonly property alias items: iconRow
 
@@ -106,6 +107,8 @@ StyledRect {
     }
 
     component EntryWrapper: Item {
+        id: wrapper
+
         required property var modelData
         required property int index
         default property Item item
@@ -116,6 +119,23 @@ StyledRect {
         implicitWidth: item?.implicitWidth ?? 0
         implicitHeight: item?.implicitHeight ?? 0
 
-        children: item
+        Item {
+            anchors.fill: parent
+            children: wrapper.item ? [wrapper.item] : []
+        }
+
+        StateLayer {
+            anchors.fill: undefined
+            anchors.centerIn: parent
+            implicitWidth: Math.max(wrapper.implicitWidth + Tokens.padding.small, Tokens.sizes.bar.innerWidth - 4)
+            implicitHeight: Tokens.sizes.bar.innerWidth - 4
+            radius: Tokens.rounding.full
+            onClicked: {
+                if (!root.bar?.popouts)
+                    return;
+                const center = wrapper.mapToItem(root.bar, wrapper.implicitWidth / 2, 0).x;
+                root.bar.popouts.toggleClickPopout(wrapper.name, center);
+            }
+        }
     }
 }

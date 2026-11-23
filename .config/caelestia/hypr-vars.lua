@@ -6,6 +6,6 @@ hl.config({
 })
 
 return {
-  cursorTheme = "MacTahoe-Tailless",
-  cursorSize = 64,
+  cursorTheme = "macOS",
+  cursorSize = 42,
 }

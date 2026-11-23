@@ -16,7 +16,7 @@ Item {
     required property BarPopouts.Wrapper popouts
     required property bool fullscreen
 
-    readonly property bool disabled: Strings.testRegexList(Config.bar.excludedScreens, screen.name)
+    readonly property bool disabled: !BarPos.enabled || Strings.testRegexList(Config.bar.excludedScreens, screen.name)
 
     readonly property string position: BarPos.position
     readonly property bool horizontal: BarPos.horizontal
@@ -55,6 +55,8 @@ Item {
     readonly property real pillH: horizontal ? pillThick : Math.max(0, height - floatMargin * 2)
 
     function inBar(px: real, py: real): bool {
+        if (disabled)
+            return false;
         switch (position) {
         case "left":
             return px < clampedExtent;
@@ -84,6 +86,14 @@ Item {
     function handleWheel(pos: real, angleDelta: point): void {
         if (content.item)
             content.item.handleWheel(pos - floatMargin, angleDelta);
+    }
+
+    onDisabledChanged: {
+        if (disabled) {
+            isHovered = false;
+            popouts.hasCurrent = false;
+            closeTray();
+        }
     }
 
     clip: true

@@ -6,6 +6,9 @@
             "layers": 0.3
         }
     },
+    "background": {
+        "wallpaperEnabled": false
+    },
     "bar": {
         "activeWindow": {
             "compact": false,

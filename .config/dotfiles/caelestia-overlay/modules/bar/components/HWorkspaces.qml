@@ -99,6 +99,7 @@ StyledRect {
 
     MouseArea {
         anchors.fill: row
+        cursorShape: Qt.PointingHandCursor
 
         onClicked: event => {
             const ws = (row.childAt(event.x, event.y) as Item)?.wsId;

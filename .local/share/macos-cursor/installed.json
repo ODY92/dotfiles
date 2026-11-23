@@ -1,0 +1,61 @@
+{
+  "theme": "macOS",
+  "theme_version": "v2.0.1",
+  "theme_source": "https://github.com/ful1e5/apple_cursor",
+  "plugin_source": "https://github.com/VirtCode/hypr-dynamic-cursors",
+  "plugin_commit": "2a8d0b735328d874a78ca93b2f201649f712a74a",
+  "plugin_abi": "11cbc6c577b84ffb1edf4df3fc5b6128c3ae6947_aq_0.16_hu_0.14_hg_0.6_hc_0.1_hlg_0.6",
+  "size": 42,
+  "hyprcursor_frames": 1708,
+  "local_plugin_patch": "Skip move() hook; use onCursorMoved with ignore_warps=false; preserve original exceptions.",
+  "verified": [
+    "hyprcursor shapes and hotspots at 24/60/96px",
+    "40x20ms animated wait/progress",
+    "plugin loaded",
+    "visual magnification and return",
+    "reload without config errors",
+    "spring stability and settling at 60/165/240 Hz",
+    "runtime click scale 1 -> 0.93 -> 1",
+    "visual click compression without moving input coordinates",
+    "real primary-button events observed",
+    "passive real movement observed: blur 14px, tilt 5.12deg; no synthetic input",
+    "configuration survives reload without errors",
+    "launcher reads current GSettings and overrides inherited 64px values with 32px",
+    "custom Steam launch targets and all action arguments preserved",
+    "44 shapes loaded at exact 42px in XCursor and Hyprcursor with identical hotspots, frame counts and delays"
+  ],
+  "immersive": {
+    "tilt_degrees": 10,
+    "tilt_spring": {
+      "stiffness": 420,
+      "damping": 29
+    },
+    "click_scale": 0.9,
+    "click_spring": {
+      "stiffness": 1000,
+      "damping": 47
+    },
+    "blur_strength": 0.45,
+    "blur_shutter_seconds": 0.008,
+    "blur_limit_pixels": 14,
+    "exposure_samples": 16,
+    "timer": "microseconds, matched to monitor refresh rate"
+  },
+  "launch_overrides": [
+    "~/.local/share/applications/chatgpt.desktop",
+    "~/.local/share/applications/steam.desktop"
+  ],
+  "native_sizes_added": [
+    42
+  ],
+  "repair_2026_11_20": {
+    "hyprland_version": "0.57.2",
+    "build": "success",
+    "hooks_found_in_installed_Hyprland": "8/8",
+    "runtime_verification": "cursor activation and no Hyprland configuration errors confirmed by manual repair report",
+    "steam_reinstallation": "completed; steam and steam-devices 1.0.0.87-3 installed",
+    "manual_finish_script": "/home/ulysse/reparer-curseur-steam.py",
+    "plugin_sha256": "c0bc94b2c75ed703908e9a750e4329c0da84d62a9b4c7efe6d725aa609e4346f",
+    "steam_login": "success confirmed in steamui_login.txt at 20:13:41"
+  }
+}

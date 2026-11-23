@@ -1,11 +1,11 @@
 * {
-  bg:          #0f0d12cc;
-  bg-alt:      #211e26;
-  fg:          #eae3ef;
-  muted:       #afa9b4;
-  accent:      #cec0ec;
-  accent-soft: #cec0ec40;
-  on-accent:   #453a5f;
+  bg:          #0c0f0acc;
+  bg-alt:      #1c2119;
+  fg:          #e2e7d9;
+  muted:       #a8ad9f;
+  accent:      #b4cfa0;
+  accent-soft: #b4cfa040;
+  on-accent:   #304623;
 }
 
 configuration { show-icons: false; }

@@ -1,7 +1,10 @@
 #!/bin/sh
+set -e
+
 case "$1" in
-  left|right|top|bottom) ;;
-  *) echo "usage : barpos left|right|top|bottom"; exit 1 ;;
+  left|right|top|bottom) state_file=bar-position ;;
+  on|off) state_file=bar-enabled ;;
+  *) echo "usage : barpos left|right|top|bottom|on|off" >&2; exit 1 ;;
 esac
 mkdir -p "$HOME/.config/caelestia"
-printf '%s\n' "$1" > "$HOME/.config/caelestia/bar-position"
+printf '%s\n' "$1" > "$HOME/.config/caelestia/$state_file"
