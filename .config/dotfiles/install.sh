@@ -352,7 +352,8 @@ if [[ "$PROFILE" != restore && "$SKIP_SDDM" == 0 ]]; then
     if [[ -d "$LISTS/system/sddm/pixie" ]]; then
         sudo mkdir -p /etc/sddm.conf.d /usr/share/sddm/themes
         sudo cp -f "$LISTS/system/sddm/10-wayland.conf" /etc/sddm.conf.d/10-wayland.conf
-        sudo cp -f "$LISTS/system/sddm/theme.conf" /etc/sddm.conf.d/theme.conf
+        sudo cp -f "$LISTS/system/sddm/theme.conf" /etc/sddm.conf.d/99-theme.conf
+        sudo localectl set-x11-keymap fr 2>/dev/null || true
         sudo rm -rf /usr/share/sddm/themes/pixie
         sudo cp -a "$LISTS/system/sddm/pixie" /usr/share/sddm/themes/pixie
     fi
