@@ -19,6 +19,9 @@ hyprpicker
 hyprpm
 quickshell
 sddm
+weston
+qt6-wayland
+layer-shell-qt
 qt6-5compat
 qt6-svg
 qt6-declarative

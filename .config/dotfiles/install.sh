@@ -154,6 +154,12 @@ done < <(dot ls-tree -rz --name-only --full-tree HEAD)
 dot read-tree HEAD
 dot checkout-index --all
 
+# Hyprland charge hyprland.conf avant hyprland.lua : on archive tout ancien hyprland.conf
+if [[ -e "$HOME/.config/hypr/hyprland.conf" || -L "$HOME/.config/hypr/hyprland.conf" ]]; then
+    mkdir -p "$BACKUP/.config/hypr"
+    mv -- "$HOME/.config/hypr/hyprland.conf" "$BACKUP/.config/hypr/hyprland.conf"
+fi
+
 # 3. Adaptation des chemins /home/ulysse -> $HOME si le nom d'utilisateur diffère
 if [[ "$HOME" != "/home/ulysse" ]]; then
     step "3/11 — Adaptation des chemins (/home/ulysse -> $HOME)"
@@ -206,14 +212,45 @@ if [[ "$PROFILE" != restore ]]; then
         AUR_HELPER=paru
     fi
 
-    mapfile -t aur_pkgs < <(sed '/^[[:space:]]*$/d' "$LISTS/pkgs-desktop-aur.txt")
-    if (( ${#aur_pkgs[@]} )); then
+    aur_install() {
+        local pkg="$1"
         if [[ "$AUR_HELPER" == paru ]]; then
-            paru -S "${PARU_FLAGS[@]}" "${aur_pkgs[@]}" || warn "Certains paquets AUR du bureau ont échoué ; vérifier manuellement."
+            paru -S "${PARU_FLAGS[@]}" "$pkg"
         else
-            yay -S --needed --noconfirm "${aur_pkgs[@]}" || warn "Certains paquets AUR du bureau ont échoué ; vérifier manuellement."
+            yay -S --needed --noconfirm "$pkg"
         fi
+    }
+
+    # 4a. Paquets critiques du bureau (caelestia-cli, qtengine, puis caelestia-shell sans conflit quickshell-git)
+    for pkg in caelestia-cli qtengine; do
+        aur_install "$pkg" || warn "Échec AUR pour $pkg"
+    done
+
+    if ! pacman -Q caelestia-shell >/dev/null 2>&1; then
+        sudo pacman -S "${PACMAN_FLAGS[@]}" ddcutil brightnessctl lm_sensors aubio libqalculate swappy qt6-shadertools || true
+        for dep in libcava qt6-m3shapes-git ttf-material-symbols-variable ttf-rubik-vf ttf-cascadia-code-nerd; do
+            aur_install "$dep" || warn "Dépendance AUR $dep en échec"
+        done
+        build_cs=$(mktemp -d)
+        if git clone https://aur.archlinux.org/caelestia-shell.git "$build_cs/caelestia-shell"; then
+            (
+                cd "$build_cs/caelestia-shell"
+                # Utilise le binaire précompilé `quickshell` de CachyOS au lieu de recompiler quickshell-git
+                sed -i "s/'quickshell-git'/'quickshell'/g" PKGBUILD
+                makepkg -si --noconfirm
+            ) || warn "Échec de la construction de caelestia-shell."
+        fi
+        rm -rf "$build_cs"
     fi
+
+    # 4b. Paquets AUR secondaires installés un par un (un échec n'interrompt pas le reste)
+    mapfile -t aur_pkgs < <(sed '/^[[:space:]]*$/d' "$LISTS/pkgs-desktop-aur.txt")
+    for pkg in "${aur_pkgs[@]}"; do
+        case "$pkg" in
+            caelestia-cli|caelestia-shell|qtengine) continue ;;
+        esac
+        aur_install "$pkg" || warn "Paquet AUR optionnel ignoré : $pkg"
+    done
 fi
 
 # 5. Surcouche Quickshell Caelestia (41 fichiers personnalisés)
@@ -250,6 +287,18 @@ if [[ -f "$LISTS/assets/default-wallpaper.png" ]]; then
     cp -f "$LISTS/assets/default-wallpaper.png" "$HOME/.cache/wp-preview.png"
     ln -sfn "$HOME/.cache/wp-preview.png" "$HOME/.local/state/caelestia/wallpaper/current"
     printf '%s' "$HOME/.cache/wp-preview.png" > "$HOME/.local/state/caelestia/wallpaper/path.txt"
+
+    # Si le fond Workshop Steam n'est pas sur cette machine, activer le fond statique Caelestia
+    if [[ ! -f "$HOME/.local/share/Steam/steamapps/workshop/content/431960/3102158703/project.json" && -f "$HOME/.config/caelestia/shell.json" ]]; then
+        python3 - "$HOME/.config/caelestia/shell.json" <<'PY'
+import json, sys
+from pathlib import Path
+p = Path(sys.argv[1])
+data = json.loads(p.read_text())
+data.setdefault("background", {})["wallpaperEnabled"] = True
+p.write_text(json.dumps(data, indent=4) + "\n")
+PY
+    fi
 fi
 
 # 7. Wallpaper picker Quickshell
@@ -307,7 +356,9 @@ if [[ "$PROFILE" != restore && "$SKIP_SDDM" == 0 ]]; then
         sudo rm -rf /usr/share/sddm/themes/pixie
         sudo cp -a "$LISTS/system/sddm/pixie" /usr/share/sddm/themes/pixie
     fi
-    sudo systemctl enable NetworkManager.service bluetooth.service sddm.service 2>/dev/null || true
+    sudo systemctl set-default graphical.target 2>/dev/null || true
+    sudo systemctl enable NetworkManager.service bluetooth.service 2>/dev/null || true
+    sudo systemctl enable --force sddm.service || warn "Impossible d'activer sddm.service"
 else
     step "9/11 — SDDM ignoré"
 fi
