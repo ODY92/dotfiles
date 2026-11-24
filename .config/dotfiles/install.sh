@@ -131,7 +131,7 @@ step "2/11 — Synchronisation des dotfiles depuis $REPO"
 if [[ ! -e "$GITDIR" ]]; then
     git clone --bare "$REPO" "$GITDIR"
 else
-    [[ "$(dot rev-parse --is-bare-repository)" == true ]] || { echo "$GITDIR n'est pas un dépôt bare." >&2; exit 1; }
+    [[ "$(git --git-dir="$GITDIR" rev-parse --is-bare-repository)" == true ]] || { echo "$GITDIR n'est pas un dépôt bare." >&2; exit 1; }
 fi
 dot fetch origin main:refs/remotes/origin/main
 if dot show-ref --verify --quiet refs/heads/main; then
